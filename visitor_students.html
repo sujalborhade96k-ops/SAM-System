@@ -113,7 +113,7 @@
 
   try {
     // Get academy name
-    const academyRes = await fetch(`http://localhost:5000/api/academy/${academyId}`);
+    const academyRes = await fetch(`https://sams-backend-54o0.onrender.com/api/academy/${academyId}`);
     const academyData = await academyRes.json();
     const academyName = academyData.academy?.name || 'Academy';
     
@@ -123,7 +123,7 @@
     `;
 
     // Get students
-    const studentsRes = await fetch(`http://localhost:5000/api/students/${academyId}`);
+    const studentsRes = await fetch(`https://sams-backend-54o0.onrender.com/api/students/${academyId}`);
     const studentsData = await studentsRes.json();
     const students = studentsData.students || [];
 

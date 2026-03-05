@@ -169,7 +169,7 @@ async function samsFetch(endpoint, options = {}) {
   };
 
   try {
-    const response = await fetch(`http://localhost:5000${endpoint}`, {
+    const response = await fetch(`https://sams-backend-54o0.onrender.com${endpoint}`, {
       ...options,
       headers: { ...defaultHeaders, ...options.headers }
     });
@@ -200,7 +200,7 @@ class SAMSRoleLogin {
       student: document.getElementById('studentForm'),
       visitor: document.getElementById('visitorForm')
     };
-    this.API_BASE = 'http://localhost:5000';
+    this.API_BASE = 'https://sams-backend-54o0.onrender.com';
     this.init();
   }
 

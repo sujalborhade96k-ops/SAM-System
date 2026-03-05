@@ -138,7 +138,7 @@
         document.getElementById('loadingState').style.display = 'block';
         
         // Get academy info
-        const academyRes = await fetch(`http://localhost:5000/api/academy/${academyId}`);
+        const academyRes = await fetch(`https://sams-backend-54o0.onrender.com/api/academy/${academyId}`);
         const academyData = await academyRes.json();
         const academyName = academyData.academy?.name || 'Academy';
         
@@ -148,7 +148,7 @@
         `;
 
         // Get students and find specific student
-        const studentRes = await fetch(`http://localhost:5000/api/students/${academyId}`);
+        const studentRes = await fetch(`https://sams-backend-54o0.onrender.com/api/students/${academyId}`);
         const studentsData = await studentRes.json();
         const students = studentsData.students || [];
         const student = students.find(s => s._id === studentId);
