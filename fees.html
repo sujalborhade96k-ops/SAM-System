@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fees Management - SAM SYSTEM</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-black min-h-screen font-sans">
+  
+  <!-- MAIN CONTENT (NO LOADING SCREEN) -->
+  <div id="main-content">
+    
+    <!-- TOP NAVIGATION -->
+    <nav class="bg-gray-900 border-b-2 border-red-500 shadow-lg sticky top-0 z-50">
+      <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+          <a href="academy_login.html" class="flex items-center mr-4 hover:text-red-400 transition-colors">
+            <span class="text-2xl">←</span>
+          </a>
+          <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-xl">⚽</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-white">FEES MANAGEMENT</h2>
+            <p class="text-red-400 text-sm font-semibold">Track Payments • Send Reminders</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a href="students.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Students</a>
+          <a href="attendance.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Attendance</a>
+          <a href="coaches.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Coaches</a>
+          <button onclick="exportFees()" class="btn-export bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg">📊 EXPORT</button>
+          <button onclick="logout()" class="btn-logout bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg">LOGOUT</button>
+        </div>
+      </div>
+	  
+    </nav>
+
+    <!-- AUTH CHECK (SCRIPT ONLY - NO VISUAL LOADING) -->
+    <div id="auth-redirect" class="hidden"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="p-6 md:p-8 max-w-7xl mx-auto">
+      
+      <!-- SUMMARY CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="stat-card bg-gradient-to-r from-green-900/80 to-black border-2 border-green-500">
+          <div class="text-4xl font-black text-green-400 mb-2">₹1,24,500</div>
+          <div class="text-gray-300 font-semibold">Total Collected</div>
+          <div class="text-green-400 text-sm mt-1">This Month</div>
+        </div>
+        <div class="stat-card bg-gradient-to-r from-red-900/80 to-black border-2 border-red-500">
+          <div class="text-4xl font-black text-red-400 mb-2">₹24,500</div>
+          <div class="text-gray-300 font-semibold">Pending Fees</div>
+          <div class="text-red-400 text-sm mt-1">12 Students</div>
+        </div>
+        <div class="stat-card bg-gradient-to-r from-yellow-900/80 to-black border-2 border-yellow-500">
+          <div class="text-4xl font-black text-yellow-400 mb-2">8</div>
+          <div class="text-gray-300 font-semibold">Overdue</div>
+          <div class="text-yellow-400 text-sm mt-1">>30 days</div>
+        </div>
+        <div class="stat-card bg-gradient-to-r from-gray-900 to-black border-2 border-gray-500">
+          <div class="text-4xl font-black text-white mb-2">94%</div>
+          <div class="text-gray-300 font-semibold">Collection Rate</div>
+          <div class="text-gray-400 text-sm mt-1">This Quarter</div>
+        </div>
+      </div>
+
+      <!-- FILTERS & BULK ACTIONS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+        
+        <!-- FILTERS -->
+        <div class="bg-gray-900 border-2 border-red-500/50 rounded-3xl p-8">
+          <h3 class="text-2xl font-black text-white mb-6">🔍 Filters</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <select id="filter-status" class="input-field py-4" onchange="filterFees()">
+              <option>All Status</option>
+              <option>Pending</option>
+              <option>Paid</option>
+              <option>Overdue</option>
+            </select>
+            <select id="filter-sport" class="input-field py-4" onchange="filterFees()">
+              <option>All Sports</option>
+              <option>Football</option>
+              <option>Cricket</option>
+              <option>Tennis</option>
+            </select>
+            <input type="text" id="filter-search" placeholder="Search student..." class="input-field py-4" onkeyup="filterFees()">
+            <button onclick="clearFilters()" class="btn-login bg-gray-600 hover:bg-gray-700 py-4 font-bold rounded-xl">CLEAR</button>
+          </div>
+        </div>
+
+        <!-- BULK ACTIONS -->
+        <div class="bg-gradient-to-r from-red-900/80 to-black border-2 border-red-500 rounded-3xl p-8">
+          <h3 class="text-2xl font-black text-white mb-6">⚡ Quick Actions</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <button onclick="markAllPaid()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all whitespace-nowrap text-sm">✅ Mark All Paid</button>
+           
+            <button onclick="generateReport()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all whitespace-nowrap text-sm">📊 Monthly Report</button>
+          <div class="flex flex-wrap gap-4 mb-6 items-center">
+
+  <select id="monthSelect" class="bg-black text-white border p-2 rounded">
+    <option value="1">Jan</option>
+    <option value="2">Feb</option>
+    <option value="3">Mar</option>
+    <option value="4">Apr</option>
+    <option value="5">May</option>
+    <option value="6">Jun</option>
+    <option value="7">Jul</option>
+    <option value="8">Aug</option>
+    <option value="9">Sep</option>
+    <option value="10">Oct</option>
+    <option value="11">Nov</option>
+    <option value="12">Dec</option>
+  </select>
+
+  <select id="yearSelect" class="bg-black text-white border p-2 rounded">
+    <option>2025</option>
+    <option selected>2026</option>
+    <option>2027</option>
+  </select>
+
+  <button onclick="loadData()" class="bg-red-500 px-4 py-2 rounded">
+    Load Month
+  </button>
+
+  <button onclick="saveAllChanges()" class="bg-green-500 px-4 py-2 rounded">
+    Save Changes
+  </button>
+
+  <button onclick="loadData()" class="bg-gray-600 px-4 py-2 rounded">
+    Reset
+  </button>
+
+</div>
+		  
+		  </div>
+		  <div class="col-span-2 flex items-center gap-3 mb-4">
+    <input type="number" id="monthly-fee-input"
+        placeholder="Set Monthly Fee Amount"
+        class="w-full bg-black border border-red-500 text-white px-4 py-3 rounded-xl">
+
+    <button onclick="applyMonthlyFee()"
+        class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-xl">
+        Apply To All
+    </button>
+</div>
+        </div>
+
+      </div>
+
+      <!-- FEES TABLE -->
+      <div class="bg-gray-900 border-2 border-red-500 rounded-3xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gradient-to-r from-red-500 to-red-600">
+              <tr>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">
+                  <div class="flex items-center">
+                    <input type="checkbox" id="select-fees-all" onchange="toggleFeesSelectAll()" class="w-5 h-5 bg-white rounded">
+                    <span class="ml-3">STUDENT</span>
+                  </div>
+                </th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">SPORT</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">AMOUNT</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">STATUS</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">DUE DATE</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">PAID DATE</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="fees-tbody" class="divide-y divide-red-500/30">
+              
+             
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+<script>
+let students = [];
+let feeRecords = [];
+let filteredData = [];
+let displayData = [];
+
+
+const API_BASE = "http://localhost:5000";
+
+/* ===============================
+   SAFE FETCH (WITH academyId)
+================================ */
+async function samsFetch(endpoint, options = {}) {
+
+    const academyId = localStorage.getItem("academyId");
+
+    if (!academyId) {
+        logout();
+        return;
+    }
+
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            "academyId": academyId,
+            ...(options.headers || {})
+        }
+    });
+
+    if (response.status === 401) {
+        alert("Session expired. Please login again.");
+        logout();
+        return;
+    }
+
+    return response.json();
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    const storedUser = localStorage.getItem("samsUser");
+    const academyId = localStorage.getItem("academyId");
+
+    if (!storedUser || !academyId) {
+        logout();
+        return;
+    }
+
+    const user = JSON.parse(storedUser);
+
+    if (user.role !== "academy") {
+        logout();
+        return;
+    }
+
+    setDefaultMonthYear();
+    loadData();
+});
+
+/* ==========================
+   DEFAULT MONTH/YEAR
+========================== */
+function setDefaultMonthYear() {
+    const monthEl = document.getElementById("monthSelect");
+    const yearEl = document.getElementById("yearSelect");
+
+    const now = new Date();
+
+    if (monthEl && !monthEl.value)
+        monthEl.value = now.getMonth() + 1;
+
+    if (yearEl && !yearEl.value)
+        yearEl.value = now.getFullYear();
+}
+
+/* ==========================
+   LOAD DATA
+========================== */
+async function loadData() {
+
+    try {
+
+        const month = Number(
+            document.getElementById("monthSelect")?.value
+        );
+
+        const year = Number(
+            document.getElementById("yearSelect")?.value
+        );
+
+        const [studData, feesData] = await Promise.all([
+            samsFetch("/api/students"),
+            samsFetch(`/api/fees?month=${month}&year=${year}`)
+        ]);
+
+        students = studData?.students || [];
+        feeRecords = feesData?.fees || [];
+
+        mergeData();
+        updateDashboardStats();
+
+    } catch (err) {
+
+        console.error("Server error:", err);
+        alert("Server connection error.");
+    }
+}
+
+/* ==========================
+   MERGE STUDENTS + FEES
+========================== */
+function mergeData() {
+    const month = Number(document.getElementById("monthSelect").value);
+    const year = Number(document.getElementById("yearSelect").value);
+
+    filteredData = students.map(student => {
+        const record = feeRecords.find(f =>
+        String(f.studentId) === String(student._id) &&
+        Number(f.month) === month &&
+        Number(f.year) === year
+       );
+
+        return {
+            studentId: student._id,
+            studentName: student.name || "",
+            sport: student.sport || "",
+            month,
+            year,
+            amount: record?.amount || 0,
+            status: record?.status || "Pending",
+            dueDate: record?.dueDate || getLastDay(month, year),
+            paidDate: record?.paidDate || ""
+        };
+    });
+
+    displayData = [...filteredData];
+    renderFees();
+}
+
+/* ==========================
+   LAST DAY OF MONTH
+========================== */
+function getLastDay(month, year) {
+    return new Date(year, month, 0)
+        .toISOString()
+        .split("T")[0];
+}
+
+/* ==========================
+   RENDER TABLE
+========================== */
+function renderFees() {
+    const tbody = document.getElementById("fees-tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    displayData.forEach(item => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td class="px-6 py-4 text-white font-semibold">
+                ${item.studentName}
+            </td>
+
+            <td class="px-6 py-4 text-gray-300">
+                ${item.sport}
+            </td>
+
+            <td class="px-6 py-4">
+                ₹ <input type="number"
+                    value="${item.amount}"
+                    class="bg-black border-b border-gray-700 w-24 text-white"
+                    onchange="updateLocal('${item.studentId}','amount',this.value)">
+            </td>
+
+            <td class="px-6 py-4">
+                <select
+                    onchange="updateLocal('${item.studentId}','status',this.value)"
+                    class="bg-black border text-white p-1">
+                    <option value="Pending" ${item.status==="Pending"?"selected":""}>Pending</option>
+                    <option value="Paid" ${item.status==="Paid"?"selected":""}>Paid</option>
+                    <option value="Overdue" ${item.status==="Overdue"?"selected":""}>Overdue</option>
+                </select>
+            </td>
+
+            <td class="px-6 py-4">
+                <input type="date"
+                    value="${item.dueDate}"
+                    onchange="updateLocal('${item.studentId}','dueDate',this.value)"
+                    class="bg-black border text-white p-1">
+            </td>
+
+            <td class="px-6 py-4 text-gray-300">
+                ${item.paidDate || "-"}
+            </td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
+
+/* ==========================
+   UPDATE LOCAL STATE
+========================== */
+window.updateLocal = function(studentId, field, value) {
+    const record = filteredData.find(f => f.studentId === studentId);
+    if (!record) return;
+
+    record[field] = field === "amount" ? Number(value) : value;
+
+    if (field === "status") {
+        if (value === "Paid")
+            record.paidDate = new Date().toISOString().split("T")[0];
+        else
+            record.paidDate = "";
+    }
+
+    displayData = [...filteredData];
+    renderFees();
+    updateDashboardStats();
+};
+
+/* ==========================
+   FILTER FEES
+========================== */
+window.filterFees = function () {
+
+    const search =
+        document.getElementById("filter-search")?.value.toLowerCase() || "";
+
+    const statusFilter =
+        document.getElementById("filter-status")?.value || "All Status";
+
+    const sportFilter =
+        document.getElementById("filter-sport")?.value || "All Sports";
+
+    displayData = filteredData.filter(f => {
+
+        // Name filter
+        const matchName =
+            f.studentName?.toLowerCase().includes(search);
+
+        // Status filter
+        const matchStatus =
+            statusFilter === "All Status"
+                ? true
+                : f.status === statusFilter;
+
+        // Sport filter
+        const matchSport =
+            sportFilter === "All Sports"
+                ? true
+                : f.sport === sportFilter;
+
+        return matchName && matchStatus && matchSport;
+    });
+
+    renderFees();
+};
+/* ==========================
+   CLEAR FILTERS
+========================== */
+window.clearFilters = function() {
+    if (document.getElementById("searchInput"))
+        document.getElementById("searchInput").value = "";
+
+    if (document.getElementById("statusFilter"))
+        document.getElementById("statusFilter").value = "";
+
+    displayData = [...filteredData];
+    renderFees();
+};
+
+/* ==========================
+   MARK ALL PAID
+========================== */
+window.markAllPaid = function() {
+    filteredData.forEach(f => {
+        f.status = "Paid";
+        f.paidDate = new Date().toISOString().split("T")[0];
+    });
+
+    displayData = [...filteredData];
+    renderFees();
+    updateDashboardStats();
+};
+
+/* ==========================
+   APPLY MONTHLY FEE
+========================== */
+window.applyMonthlyFee = function() {
+    const amount = Number(prompt("Enter monthly fee amount:"));
+    if (!amount) return;
+
+    filteredData.forEach(f => {
+        f.amount = amount;
+    });
+
+    displayData = [...filteredData];
+    renderFees();
+    updateDashboardStats();
+};
+
+/* ==========================
+   SAVE ALL CHANGES
+========================== */
+window.saveAllChanges = async function() {
+
+    try {
+
+        for (let item of filteredData) {
+
+            await samsFetch("/api/fees", {
+                method: "POST",
+                body: JSON.stringify(item)
+            });
+        }
+
+        alert("All changes saved successfully!");
+        loadData();
+
+    } catch (err) {
+        console.error("Save error:", err);
+        alert("Error saving changes.");
+    }
+};
+/* ==========================
+   LOGOUT
+========================== */
+function logout() {
+
+    localStorage.removeItem("samsUser");
+    localStorage.removeItem("academyId");
+    localStorage.removeItem("samsAcademy");
+
+    window.location.href = "index.html";
+}
+
+/* ==========================
+   DASHBOARD STATS
+========================== */
+function updateDashboardStats() {
+    let collected = 0;
+    let pending = 0;
+    let overdue = 0;
+
+    filteredData.forEach(f => {
+        if (f.status === "Paid")
+            collected += Number(f.amount);
+
+        if (f.status === "Pending")
+            pending += Number(f.amount);
+
+        if (f.status === "Overdue")
+            overdue++;
+    });
+
+    const cards = document.querySelectorAll(".stat-card");
+
+    if (cards.length >= 3) {
+        cards[0].querySelector(".text-4xl").innerText = `₹${collected}`;
+        cards[1].querySelector(".text-4xl").innerText = `₹${pending}`;
+        cards[2].querySelector(".text-4xl").innerText = overdue;
+    }
+}
+
+/* ==========================
+   EXPORT FEES
+========================== */
+window.exportFees = function() {
+
+    const month = document.getElementById("monthSelect").value;
+    const year = document.getElementById("yearSelect").value;
+
+    let csv = `Fees Report - ${month}/${year}\n\n`;
+    csv += "Student,Sport,Amount,Status,Due Date,Paid Date\n";
+
+    displayData.forEach(f => {
+
+        csv += `"${f.studentName}",` +
+               `"${f.sport}",` +
+               `${f.amount},` +
+               `${f.status},` +
+               `${f.dueDate},` +
+               `${f.paidDate || ""}\n`;
+    });
+
+    downloadCSV(csv, `Fees_${month}_${year}.csv`);
+};
+
+/* ==========================
+   GENERATE MONTHLY REPORT
+========================== */
+window.generateReport = async function () {
+
+    try {
+
+        const year = Number(document.getElementById("yearSelect").value);
+
+        const data = await samsFetch(`/api/fees?year=${year}`);
+        const allFees = data?.fees || [];
+
+        const months = [
+            "Jan","Feb","Mar","Apr","May","Jun",
+            "Jul","Aug","Sep","Oct","Nov","Dec"
+        ];
+
+        let csv = "Student," + months.join(",") + "\n";
+
+        students.forEach(student => {
+
+            let row = `"${student.name}"`;
+
+            months.forEach((m, index) => {
+
+                const record = allFees.find(f =>
+                    String(f.studentId) === String(student._id) &&
+                    Number(f.month) === (index + 1) &&
+                    Number(f.year) === year
+                );
+
+                if (!record) {
+                    row += ",";
+                } else if (record.status === "Paid") {
+                    row += ",Paid";
+                } else {
+                    row += `,₹${record.amount}`;
+                }
+            });
+
+            csv += row + "\n";
+        });
+
+        downloadCSV(csv, `Fees_Report_${year}.csv`);
+
+    } catch (err) {
+        console.error("Report error:", err);
+        alert("Error generating report");
+    }
+};
+
+/* ==========================
+   CSV DOWNLOAD
+========================== */
+function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+
+  <style>
+    .blink {
+      animation: blink 2s infinite;
+    }
+    
+    .urgent-row {
+      border-left: 4px solid #ef4444;
+    }
+    
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.5; }
+    }
+    
+    .btn-small { 
+      padding: 6px 12px; 
+      font-size: 12px; 
+    }
+  </style>
+
+</body>
+</html>

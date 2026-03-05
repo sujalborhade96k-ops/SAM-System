@@ -1,0 +1,1742 @@
+index.html (Home - 3 Login Cards)
+├── academy_login.html (Manager Dashboard)
+│   ├── students.html (Full Edit Access)
+│   │ └── ├── student_profile.html (Edit Mode)
+│   ├── attendance.html (Edit Mode)
+│   ├── fees.html (Edit Mode)
+│   ├── coaches.html (Edit Mode)
+│   └── about.html (Edit Mode)
+├── 
+│   └── academies.html (Student's Academies List)
+│       └── academy_dashboard.html (Student View)
+├── visitor_academy.html (Visitor Welcome)
+│       └── visitor_students.html (All Public Academies)
+│           └── player_profile.html (Public View)
+│          
+└── styles.css (Premium Dark Blue Theme)
+
+
+
+
+cd C:\Users\premb\OneDrive\Desktop\SAMS\Backend
+samsadmin
+sams123456
+
+Frontend
+   ↓
+localStorage user
+
+{
+ username
+ academyId
+}
+
+↓ request
+
+fetch('/api/students',{
+ headers:{ academyId }
+})
+
+↓
+
+Node server
+
+const academyId = req.headers.academyid
+
+↓
+
+MongoDB query
+
+find({ academyId })
+
+
+// Mongo connection
+// parseBody
+// seedData
+
+const server = http.createServer(async (req, res) => {
+
+   // CORS
+
+   // LOGIN
+   // REGISTER
+   // STUDENTS
+   // COACHES
+   // FEES
+   // ATTENDANCE
+   // STATS
+
+});
+
+server.listen(5000);
+
+
+
+
+<script>
+
+let coaches = [];
+let editMode = false;
+let editingId = null;
+
+const API_BASE = "http://localhost:5000";
+
+async function samsFetch(endpoint, options = {}) {
+
+  const academyId = localStorage.getItem("academyId");
+
+  if (!academyId) {
+    logout();
+    return;
+  }
+
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "academyId": academyId,
+      ...(options.headers || {})
+    }
+  });
+
+  if (response.status === 401) {
+    alert("Session expired. Please login again.");
+    logout();
+    return;
+  }
+
+  return response.json();
+} 
+
+/* ===========================
+   AUTH CHECK
+=========================== */
+if (!localStorage.getItem("samsUser")) {
+  window.location.href = "index.html";
+}
+
+/* ===========================
+   LOAD COACHES
+=========================== */
+window.addEventListener("DOMContentLoaded", () => {
+  loadCoaches();
+
+  document.getElementById("coach-form")
+    .addEventListener("submit", addCoach);
+
+  document.getElementById("search-coaches")
+    .addEventListener("keyup", filterCoaches);
+
+  document.getElementById("filter-sport")
+    .addEventListener("change", filterCoaches);
+});
+
+async function loadCoaches() {
+  const res = await fetch("http://localhost:5000/api/coaches");
+  const data = await res.json();
+
+  if (data.success) {
+    coaches = data.coaches;
+    renderCoaches();
+  }
+}
+
+/* ===========================
+   RENDER COACHES
+=========================== */
+function renderCoaches() {
+
+  const container = document.querySelector(".grid");
+  container.innerHTML = "";
+
+  coaches.forEach(coach => {
+
+    container.innerHTML += `
+      <div class="coach-card bg-gray-900 border-2 border-red-500/50 rounded-3xl p-8 hover:scale-105 transition-all">
+
+        <h3 class="text-2xl font-black text-white text-center mb-4">
+          ${coach.name}
+        </h3>
+
+        <div class="space-y-3 mb-6 text-center">
+          <div class="text-red-400 font-semibold">${coach.sport}</div>
+          <div class="text-green-400 font-semibold">
+            ${coach.schedule || "Schedule Not Set"}
+          </div>
+          <div class="text-yellow-400 font-semibold">
+            ${(coach.experience || 0)} Years Exp.
+          </div>
+        </div>
+
+        <div class="flex space-x-2">
+          <button onclick="editCoach('${coach._id}')"
+            class="flex-1 bg-blue-500 text-white font-bold py-2 rounded-xl">
+            EDIT
+          </button>
+
+          <button onclick="deleteCoach('${coach._id}')"
+            class="flex-1 bg-red-600 text-white font-bold py-2 rounded-xl">
+            DELETE
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
+}
+
+/* ===========================
+   ADD / UPDATE COACH
+=========================== */
+async function addCoach(e) {
+
+  e.preventDefault();
+
+  const coachData = {
+    name: document.getElementById("coach-name").value,
+    sport: document.getElementById("coach-sport").value,
+    schedule: document.getElementById("coach-schedule").value,
+    experience: Number(document.getElementById("coach-experience").value),
+    contact: document.getElementById("coach-contact").value
+  };
+
+  let url = "http://localhost:5000/api/coaches";
+  let method = "POST";
+
+  if (editMode) {
+    url = `http://localhost:5000/api/coaches/${editingId}`;
+    method = "PUT";
+  }
+
+  const res = await fetch(url, {
+    method: method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(coachData)
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+
+    alert(editMode ? "✅ Coach Updated" : "✅ Coach Added");
+
+    editMode = false;
+    editingId = null;
+
+    closeCoachModal();
+    loadCoaches();
+  }
+}
+
+/* ===========================
+   EDIT COACH
+=========================== */
+function editCoach(id) {
+
+  const coach = coaches.find(c => c._id === id);
+
+  document.getElementById("coach-name").value = coach.name;
+  document.getElementById("coach-sport").value = coach.sport;
+  document.getElementById("coach-schedule").value = coach.schedule || "";
+  document.getElementById("coach-experience").value = coach.experience || "";
+  document.getElementById("coach-contact").value = coach.contact || "";
+
+  editMode = true;
+  editingId = id;
+
+  openCoachModal();
+}
+
+/* ===========================
+   DELETE COACH
+=========================== */
+async function deleteCoach(id) {
+
+  if (!confirm("Delete this coach?")) return;
+
+  const res = await fetch(
+    `http://localhost:5000/api/coaches/${id}`,
+    { method: "DELETE" }
+  );
+
+  const data = await res.json();
+
+  if (data.success) {
+    loadCoaches();
+  }
+}
+
+/* ===========================
+   FILTER COACHES
+=========================== */
+function filterCoaches() {
+
+  const searchValue =
+    document.getElementById("search-coaches").value.toLowerCase();
+
+  const sportValue =
+    document.getElementById("filter-sport").value;
+
+  const filtered = coaches.filter(coach => {
+
+    const matchName =
+      coach.name.toLowerCase().includes(searchValue);
+
+    const matchSport =
+      sportValue === "All Sports" ||
+      coach.sport === sportValue;
+
+    return matchName && matchSport;
+  });
+
+  renderFiltered(filtered);
+}
+
+function renderFiltered(list) {
+
+  const container = document.querySelector(".grid");
+  container.innerHTML = "";
+
+  list.forEach(coach => {
+    container.innerHTML += `
+      <div class="coach-card bg-gray-900 border-2 border-red-500/50 rounded-3xl p-8">
+
+        <h3 class="text-2xl font-black text-white text-center mb-4">
+          ${coach.name}
+        </h3>
+
+        <div class="space-y-3 mb-6 text-center">
+          <div class="text-red-400 font-semibold">${coach.sport}</div>
+          <div class="text-green-400 font-semibold">
+            ${coach.schedule || "Schedule Not Set"}
+          </div>
+          <div class="text-yellow-400 font-semibold">
+            ${(coach.experience || 0)} Years Exp.
+          </div>
+        </div>
+
+        <div class="flex space-x-2">
+          <button onclick="editCoach('${coach._id}')"
+            class="flex-1 bg-blue-500 text-white font-bold py-2 rounded-xl">
+            EDIT
+          </button>
+
+          <button onclick="deleteCoach('${coach._id}')"
+            class="flex-1 bg-red-600 text-white font-bold py-2 rounded-xl">
+            DELETE
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
+}
+
+/* ===========================
+   CLEAR FILTERS
+=========================== */
+function clearFilters() {
+  document.getElementById("search-coaches").value = "";
+  document.getElementById("filter-sport").value = "All Sports";
+  renderCoaches();
+}
+
+/* ===========================
+   EXPORT CSV
+=========================== */
+function exportCoaches() {
+
+  let csv = "Name,Sport,Schedule,Experience\n";
+
+  coaches.forEach(c => {
+    csv += `${c.name},${c.sport},${c.schedule || ""},${c.experience || 0}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "coaches.csv";
+  a.click();
+}
+
+/* ===========================
+   MODAL
+=========================== */
+function openCoachModal() {
+  document.getElementById("coach-modal").classList.remove("hidden");
+}
+
+function closeCoachModal() {
+  document.getElementById("coach-modal").classList.add("hidden");
+}
+
+/* ===========================
+   LOGOUT
+=========================== */
+function logout() {
+  localStorage.removeItem("samsUser");
+  window.location.href = "index.html";
+}
+
+</script>
+
+
+
+server.js 
+
+const http = require('http');
+require('dns').setServers(['8.8.8.8', '1.1.1.1']);
+
+const { MongoClient } = require('mongodb');
+const { ObjectId } = require('mongodb');
+
+
+const uri = "mongodb+srv://samsadmin:sams123456@samsystem-cluster.qxrdgil.mongodb.net/samsystem?retryWrites=true&w=majority";
+
+let db;
+
+/* ===============================
+   CONNECT TO MONGODB
+================================ */
+MongoClient.connect(uri)
+  .then(client => {
+    db = client.db('samsystem');
+    console.log('✅ MongoDB Connected!');
+    seedData();
+  })
+  .catch(err => console.error('❌ MongoDB Error:', err));
+
+
+/* ===============================
+   BODY PARSER (Reusable)
+================================ */
+function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+
+    req.on("data", chunk => {
+      body += chunk.toString();
+    });
+
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(body));
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+    req.on("error", err => reject(err));
+  });
+}
+
+/* ===============================
+   SEED DATA
+================================ */
+async function seedData() {
+
+  const academyId = "ACAD001";
+
+  await db.collection('users').updateOne(
+    { username: 'acaduser' },
+    {
+      $setOnInsert: {
+        username: 'acaduser',
+        password: 'pass',
+        role: 'academy',
+        academyId: academyId,
+        createdAt: new Date()
+      }
+    },
+    { upsert: true }
+  );
+
+  await db.collection('academies').updateOne(
+    { _id: academyId },
+    {
+      $setOnInsert: {
+        _id: academyId,
+        name: 'Pune City FC',
+        manager: 'acaduser',
+        address: 'Pune, Maharashtra',
+        createdAt: new Date()
+      }
+    },
+    { upsert: true }
+  );
+
+  console.log('✅ SEED COMPLETE (acaduser/pass)');
+}
+
+/* ===============================
+   SERVER
+================================ */
+const server = http.createServer(async (req, res) => {
+
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, academyId');
+  res.setHeader('Content-Type', 'application/json');
+
+  // Handle Preflight Request
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    return res.end();
+  }
+
+  let academyId;
+
+  try {
+
+  // Read academyId from header (headers are always lowercase in Node)
+  academyId = req.headers['academyid'];
+
+  // Define public routes (NO academyId required)
+  const publicRoutes = [
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/academies'
+  ];
+
+  // Remove query parameters before checking route
+  const cleanUrl = req.url.split('?')[0];
+
+  // Check if request is public
+  const isPublicRoute = publicRoutes.includes(cleanUrl);
+
+  // Block non-public routes without academyId
+  if (!academyId && !isPublicRoute) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Academy ID missing"
+    }));
+
+}
+
+  } catch (err) {
+
+    console.error("Request header error:", err);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+  
+ 
+  /* ===============================
+     YOUR ROUTES CONTINUE BELOW
+  ================================= */
+/* ===============================
+   HOME
+================================ */
+if (req.url === '/' && req.method === 'GET') {
+
+  res.writeHead(200);
+
+  return res.end(JSON.stringify({
+    success: true,
+    message: "SAM SYSTEM Backend LIVE 🚀",
+    version: "1.0",
+    endpoints: [
+      "POST /api/auth/login",
+      "POST /api/auth/register",
+      "GET /api/students",
+      "POST /api/students",
+      "PUT /api/students/:id",
+      "DELETE /api/students/:id",
+      "GET /api/coaches",
+      "POST /api/coaches",
+      "GET /api/fees",
+      "POST /api/fees",
+      "POST /api/attendance",
+      "GET /api/academy/stats"
+    ]
+  }));
+
+}
+/* ===============================
+   LOGIN
+================================ */
+if (req.url === '/api/auth/login' && req.method === 'POST') {
+
+  try {
+
+    const { username, password } = await parseBody(req);
+
+    if (!username || !password) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Username and password required"
+      }));
+    }
+
+    const user = await db.collection('users').findOne({ username });
+
+    if (!user || user.password !== password) {
+      res.writeHead(401);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Invalid username or password"
+      }));
+    }
+
+    const academy = await db.collection('academies')
+      .findOne({ _id: user.academyId });
+
+    res.writeHead(200);
+
+    return res.end(JSON.stringify({
+      success: true,
+      user: {
+        username: user.username,
+        role: user.role,
+        academyId: user.academyId
+      },
+      academy: academy
+    }));
+
+  } catch (error) {
+
+    console.error("Login Error:", error);
+
+    res.writeHead(500);
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+	
+/* ===============================
+   REGISTER
+================================ */
+if (req.url === '/api/auth/register' && req.method === 'POST') {
+
+  try {
+
+    const data = await parseBody(req);
+
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      sport,
+      phone,
+      academyId
+    } = data;
+
+    if (!firstName || !lastName || !email || !password || !role) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Missing required fields"
+      }));
+    }
+
+    // Check email already exists
+    const emailExists = await db.collection('users').findOne({ email });
+
+    if (emailExists) {
+      res.writeHead(409);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Email already registered"
+      }));
+    }
+
+    // Generate username
+    let username =
+      (firstName.substring(0,3) +
+      lastName.substring(0,3) +
+      Math.floor(Math.random()*100)).toLowerCase();
+
+    while (await db.collection('users').findOne({ username })) {
+      username =
+        username +
+        Math.floor(Math.random()*9);
+    }
+
+    let academyIdGenerated = academyId || null;
+
+    /* If academy registers → create academy */
+    if (role === 'academy') {
+
+      academyIdGenerated = 'ACAD' + Date.now().toString().slice(-6);
+
+      await db.collection('academies').insertOne({
+        _id: academyIdGenerated,
+        name: data.academyName || "New Academy",
+        manager: username,
+        city: data.city || "",
+        state: data.state || "",
+        createdAt: new Date()
+      });
+
+    }
+
+    // Create user login
+    await db.collection('users').insertOne({
+      username,
+      email,
+      password,
+      role,
+      academyId: academyIdGenerated,
+      createdAt: new Date()
+    });
+
+   /* =========================
+   STUDENT + USER CREATION (LINKED)
+========================= */
+
+let studentIdGenerated = null;
+
+// If role is student → create student first
+if (role === "student") {
+
+  studentIdGenerated = "STU" + Date.now().toString().slice(-6);
+
+  await db.collection('students').insertOne({
+    _id: studentIdGenerated,
+    name: firstName + " " + lastName,
+    sport: sport || "",
+    age: data.age || "",
+    batch: data.batch || "",
+    contact: phone || "",
+    academyId: academyIdGenerated,
+    createdAt: new Date()
+  });
+}
+
+// Now create user (linked if student)
+await db.collection('users').insertOne({
+  username,
+  email,
+  password,
+  role,
+  academyId: academyIdGenerated,
+  studentId: studentIdGenerated, // 🔥 Automatically linked
+  createdAt: new Date()
+});
+
+res.writeHead(200);
+
+return res.end(JSON.stringify({
+  success: true,
+  message: "User registered successfully",
+  username,
+  academyId: academyIdGenerated,
+  studentId: studentIdGenerated || null
+}));
+
+  } catch (error) {
+
+    console.error("Register Error:", error);
+
+    res.writeHead(500);
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+
+/* ===============================
+   GET ALL ACADEMIES (PUBLIC)
+================================ */
+if (req.url === '/api/academies' && req.method === 'GET') {
+
+  try {
+
+    const academies = await db.collection('academies')
+      .find({})
+      .project({ _id: 1, name: 1 })
+      .toArray();
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify(academies));
+
+  } catch (error) {
+
+    console.error("Get Academies Error:", error);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+
+/* ===============================
+   GET STUDENTS BY ACADEMY
+================================ */
+if (req.url.startsWith('/api/students/') && req.method === 'GET') {
+
+  const academyId = req.url.split('/').pop();
+
+  try {
+
+    const students = await db.collection('students')
+    .find({ academyId })
+    .toArray();
+
+    res.writeHead(200);
+    return res.end(JSON.stringify({
+      success:true,
+      students
+    }));
+
+  } catch(err){
+
+    res.writeHead(500);
+    return res.end(JSON.stringify({
+      success:false
+    }));
+
+  }
+}
+
+/* ===============================
+   GET ACADEMY BY ID
+================================ */
+if (req.url.startsWith('/api/academy/') && req.method === 'GET') {
+
+  const academyId = req.url.split('/').pop();
+
+  try {
+
+    const academy = await db.collection('academies').findOne({ _id: academyId });
+
+    if (!academy) {
+      res.writeHead(404);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy not found"
+      }));
+    }
+
+    res.writeHead(200);
+    return res.end(JSON.stringify({
+      success: true,
+      academy
+    }));
+
+  } catch (err) {
+
+    res.writeHead(500);
+    return res.end(JSON.stringify({
+      success:false,
+      message:"Server error"
+    }));
+
+  }
+}
+
+
+/* ===============================
+   GET STUDENTS
+================================ */
+if (req.url === '/api/students' && req.method === 'GET') {
+
+  try {
+
+    // Ensure academyId exists
+    if (!academyId) {
+      res.writeHead(401);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy ID missing"
+      }));
+    }
+
+    const students = await db.collection('students')
+      .find({ academyId: academyId })
+      .toArray();
+
+    res.writeHead(200);
+
+    return res.end(JSON.stringify({
+      success: true,
+      students
+    }));
+
+  } catch (error) {
+
+    console.error("Get Students Error:", error);
+
+    res.writeHead(500);
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+
+/* ===============================
+   ADD STUDENT (WITH LOGIN + EMAIL)
+================================ */
+if (req.url === '/api/students' && req.method === 'POST') {
+
+  try {
+
+    if (!academyId) {
+      res.writeHead(401);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy ID missing"
+      }));
+    }
+
+    const data = await parseBody(req);
+
+    if (!data.name || !data.sport || !data.contact || !data.email) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Name, sport, contact and email are required"
+      }));
+    }
+
+    /* ============================
+       GENERATE STUDENT ID
+    ============================ */
+    const studentId = 'STU' + Date.now().toString().slice(-6);
+
+    /* ============================
+       GENERATE USERNAME (SAME AS REGISTER)
+    ============================ */
+    const nameParts = data.name.trim().split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts[1] || "";
+
+    let username =
+      (firstName.substring(0,3) +
+       lastName.substring(0,3) +
+       Math.floor(Math.random()*100)
+      ).toLowerCase();
+
+    // Ensure username is unique
+    while (await db.collection('users').findOne({ username })) {
+      username =
+        username +
+        Math.floor(Math.random()*9);
+    }
+
+    /* ============================
+       CHECK EMAIL & CONTACT DUPLICATE
+    ============================ */
+    const existingEmail = await db.collection('users').findOne({ email: data.email });
+    if (existingEmail) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Email already registered"
+      }));
+    }
+
+    const existingContact = await db.collection('students').findOne({ contact: data.contact });
+    if (existingContact) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Contact number already exists"
+      }));
+    }
+
+    const tempPassword = "123456";
+
+    /* ============================
+       INSERT STUDENT
+    ============================ */
+    const newStudent = {
+      _id: studentId,
+      name: data.name,
+      age: data.age || "",
+      sport: data.sport,
+      batch: data.batch || "",
+      contact: data.contact,
+      email: data.email,
+      academyId: academyId,
+      createdAt: new Date()
+    };
+
+    await db.collection('students').insertOne(newStudent);
+
+    try {
+
+      /* ============================
+         INSERT LINKED USER
+      ============================ */
+      await db.collection('users').insertOne({
+        username,
+        email: data.email,
+        password: tempPassword,
+        role: "student",
+        academyId,
+        studentId,
+        createdAt: new Date()
+      });
+
+    } catch (err) {
+
+      // Rollback student if user insert fails
+      await db.collection('students').deleteOne({ _id: studentId });
+      throw err;
+    }
+
+    res.writeHead(200);
+
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Student and login created successfully",
+      student: newStudent,
+      username,
+      tempPassword
+    }));
+
+  } catch (error) {
+
+    console.error("Add Student Error:", error);
+
+    res.writeHead(500);
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+
+/* ===============================
+   UPDATE STUDENT
+================================ */
+if (req.method === 'PUT' && req.url.startsWith('/api/students/')) {
+
+  try {
+
+    if (!academyId) {
+      res.writeHead(401);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy ID missing"
+      }));
+    }
+
+    const parts = req.url.split('/');
+    const studentId = parts[parts.length - 1];
+
+    const updatedData = await parseBody(req);
+
+    const result = await db.collection('students').updateOne(
+      { _id: studentId, academyId: academyId },
+      { $set: updatedData }
+    );
+
+    if (result.matchedCount === 0) {
+      res.writeHead(404);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Student not found"
+      }));
+    }
+
+    res.writeHead(200);
+
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Student updated successfully"
+    }));
+
+  } catch (error) {
+
+    console.error("Update Student Error:", error);
+
+    res.writeHead(500);
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+
+/* ===============================
+   DELETE STUDENT
+================================ */
+if (req.url.startsWith('/api/students/') && req.method === 'DELETE') {
+
+  try {
+
+    if (!academyId) {
+      res.writeHead(401);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy ID missing"
+      }));
+    }
+
+    const parts = req.url.split('/');
+    const studentId = parts[parts.length - 1];
+
+    const result = await db.collection('students').deleteOne({
+      _id: studentId,
+      academyId: academyId
+    });
+
+    if (result.deletedCount === 0) {
+      res.writeHead(404);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Student not found"
+      }));
+    }
+
+    res.writeHead(200);
+
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Student deleted successfully"
+    }));
+
+  } catch (error) {
+
+    console.error("Delete Student Error:", error);
+
+    res.writeHead(500);
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+
+/* ===============================
+   GET COACHES
+================================ */
+if (req.url === '/api/coaches' && req.method === 'GET') {
+
+  try {
+
+    if (!academyId) {
+      res.writeHead(401);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy ID missing"
+      }));
+    }
+
+    const coaches = await db.collection('coaches')
+      .find({ academyId: academyId })
+      .toArray();
+
+    res.writeHead(200);
+
+    return res.end(JSON.stringify({
+      success: true,
+      coaches: coaches
+    }));
+
+  } catch (error) {
+
+    console.error("Get Coaches Error:", error);
+
+    res.writeHead(500);
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+	
+
+
+    /* ===============================
+   ADD COACH
+================================ */
+if (req.url === '/api/coaches' && req.method === 'POST') {
+
+  const data = await parseBody(req);
+
+  const newCoach = {
+    _id: 'COA' + Date.now().toString().slice(-6),
+    name: data.name,
+    sport: data.sport,
+    experience: data.experience,
+    contact: data.contact,
+    academyId: academyId,
+    createdAt: new Date()
+  };
+
+  await db.collection('coaches').insertOne(newCoach);
+
+  return res.end(JSON.stringify({
+    success: true,
+    coach: newCoach
+  }));
+}
+
+/* ===============================
+   UPDATE COACH
+================================ */
+if (req.method === 'PUT' && req.url.startsWith('/api/coaches/')) {
+  try {
+    if (!academyId) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy ID missing"
+      }));
+    }
+
+    const parts = req.url.split('/');
+    const coachId = parts[parts.length - 1];
+
+    // Find coach as string ID
+    const updatedData = await parseBody(req);
+
+    const result = await db.collection('coaches').updateOne(
+      { _id: coachId, academyId: academyId },
+      { $set: updatedData }
+    );
+
+    if (result.matchedCount === 0) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Coach not found"
+      }));
+    }
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Coach updated successfully"
+    }));
+
+  } catch (error) {
+    console.error("Update Coach Error:", error);
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+
+if (req.url.startsWith('/api/coaches/') && req.method === 'DELETE') {
+
+  try {
+
+    const parts = req.url.split('/');
+    const coachId = parts[parts.length - 1];
+
+    const result = await db.collection('coaches').deleteOne({
+      _id: coachId,
+      academyId: academyId
+    });
+
+    if (result.deletedCount === 0) {
+      res.writeHead(404);
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Coach not found"
+      }));
+    }
+
+    res.writeHead(200);
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Coach deleted successfully"
+    }));
+
+  } catch (error) {
+    console.error("Delete Coach Error:", error);
+    res.writeHead(500);
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+   
+/* ===============================
+   ACADEMY DASHBOARD STATS
+================================ */
+if (req.url === '/api/academy/stats' && req.method === 'GET') {
+
+  // GET academyId from headers
+  const academyId = req.headers['academyid'];
+
+  if (!academyId) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Academy ID missing"
+    }));
+  }
+
+  try {
+
+    // Fetch academy info
+    const academy = await db.collection('academies')
+      .findOne({ _id: academyId });
+
+    // Count students
+    const totalStudents = await db.collection('students')
+      .countDocuments({ academyId: academyId });
+
+    // Count coaches
+    const totalCoaches = await db.collection('coaches')
+      .countDocuments({ academyId: academyId });
+
+    // Pending fees
+    const pendingFeesRecords = await db.collection('fees')
+      .find({ academyId: academyId, status: 'Pending' })
+      .toArray();
+
+    const pendingAmount = pendingFeesRecords.reduce((sum, fee) => {
+      return sum + (Number(fee.amount) || 0);
+    }, 0);
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+
+    return res.end(JSON.stringify({
+      success: true,
+      stats: {
+        academyName: academy ? academy.name : "Academy",
+        totalStudents: totalStudents,
+        activeCoaches: totalCoaches,
+        attendanceRate: "98%", // placeholder
+        pendingFees: "₹" + pendingAmount
+      }
+    }));
+
+  } catch (error) {
+
+    console.error("Stats API Error:", error);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+
+  }
+}
+
+/* ===============================
+   UPDATE ACADEMY PROFILE
+================================ */
+if (req.method === "PUT" && req.url === "/api/academy/update-profile") {
+
+  try {
+
+    const academyId = (req.headers["academyid"] || "").trim();
+
+    if (!academyId) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy ID missing"
+      }));
+    }
+
+    const body = await parseBody(req);
+    const { field, value } = body;
+
+    if (!field || typeof value !== "string" || !value.trim()) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Field and valid value required"
+      }));
+    }
+
+    const allowedFields = ["name", "manager"];
+
+    if (!allowedFields.includes(field)) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Invalid field"
+      }));
+    }
+
+    const result = await db.collection("academies").updateOne(
+      { _id: academyId },
+      {
+        $set: {
+          [field]: value.trim(),
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Academy not found"
+      }));
+    }
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Profile updated successfully"
+    }));
+
+  } catch (err) {
+
+    console.error("Update Academy Profile Error:", err);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+
+// ===============================
+// FEES API - GET
+// ===============================
+if (req.method === "GET" && req.url.startsWith("/api/fees")) {
+
+  // Check academyId from headers
+  if (!academyId) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Academy ID missing"
+    }));
+  }
+
+  try {
+    // Parse query parameters for month and year
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const month = url.searchParams.get("month");
+    const year = url.searchParams.get("year");
+
+    let filter = { academyId: academyId };
+
+    if (month) filter.month = Number(month);
+    if (year) filter.year = Number(year);
+
+    // Fetch fees from database
+    const feesRecords = await db.collection("fees")
+      .find(filter)
+      .toArray();
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      fees: feesRecords
+    }));
+
+  } catch (err) {
+    console.error("Fees GET Error:", err);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+
+// ===============================
+// FEES API - POST (Add / Update Fee)
+// ===============================
+if (req.method === "POST" && req.url === "/api/fees") {
+
+  // Check academyId from headers
+  if (!academyId) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Academy ID missing"
+    }));
+  }
+
+  try {
+    const body = await parseBody(req);
+
+    // Validate required fields
+    const { studentId, month, year, amount, status, dueDate } = body;
+    if (!studentId || !month || !year) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Missing required fields: studentId, month, or year"
+      }));
+    }
+
+    const paidDate = status === "Paid" ? new Date() : null;
+
+    // Upsert fee record
+    await db.collection("fees").updateOne(
+      {
+        studentId: studentId,
+        month: Number(month),
+        year: Number(year),
+        academyId: academyId
+      },
+      {
+        $set: {
+          studentId: studentId,
+          month: Number(month),
+          year: Number(year),
+          amount: Number(amount || 0),
+          status: status || "Pending",
+          dueDate: dueDate || "",
+          paidDate: paidDate,
+          academyId: academyId,
+          updatedAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Fee updated successfully"
+    }));
+
+  } catch (err) {
+    console.error("Fees POST Error:", err);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+
+/* ===============================
+   ATTENDANCE API - SINGLE DATE GET
+// ================================ */
+if (req.method === "GET" && req.url.startsWith("/api/attendance?")) {
+
+  if (!academyId) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Academy ID missing"
+    }));
+  }
+
+  try {
+
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const date = url.searchParams.get("date");
+
+    if (!date) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Date required"
+      }));
+    }
+
+    const doc = await db.collection("attendance").findOne({
+      academyId: academyId,
+      date: date
+    });
+
+    let attendance = [];
+
+    if (doc) {
+      doc.records.forEach(r => {
+        attendance.push({
+          studentId: r.studentId,
+          status: r.status,
+          date: doc.date
+        });
+      });
+    }
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      attendance
+    }));
+
+  } catch (err) {
+
+    console.error("Single Attendance Error:", err);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+
+/* ===============================
+   ATTENDANCE API - POST (FIXED)
+================================ */
+if (req.url === '/api/attendance' && req.method === 'POST') {
+
+  if (!academyId) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Academy ID missing"
+    }));
+  }
+
+  try {
+
+    const { date, records } = await parseBody(req);
+
+    if (!date || !records || !Array.isArray(records) || records.length === 0) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Invalid attendance data"
+      }));
+    }
+
+    // 🔥 REPLACE insertOne WITH updateOne + upsert
+    await db.collection("attendance").updateOne(
+      {
+        academyId: academyId,
+        date: date
+      },
+      {
+        $set: {
+          academyId: academyId,
+          date: date,
+          records: records,
+          updatedAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      message: "Attendance saved successfully"
+    }));
+
+  } catch (err) {
+
+    console.error("Attendance POST Error:", err);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+}
+/* ===============================
+   ATTENDANCE API - MONTHLY GET
+================================ */
+if (req.method === "GET" && req.url.startsWith("/api/attendance/monthly")) {
+
+  if (!academyId) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Academy ID missing"
+    }));
+  }
+
+  try {
+
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const year = Number(url.searchParams.get("year"));
+    const month = Number(url.searchParams.get("month")); // 1-12
+
+    if (!year || !month) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({
+        success: false,
+        message: "Year and month required"
+      }));
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    // Fetch attendance documents for that month
+    const monthlyDocs = await db.collection("attendance")
+      .find({
+        academyId: academyId,
+        date: {
+          $gte: startDate.toISOString().split("T")[0],
+          $lte: endDate.toISOString().split("T")[0]
+        }
+      })
+      .toArray();
+
+    // Flatten records into simple array
+    let attendance = [];
+
+    monthlyDocs.forEach(doc => {
+      doc.records.forEach(r => {
+        attendance.push({
+          studentId: r.studentId,
+          status: r.status,
+          date: doc.date
+        });
+      });
+    });
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: true,
+      attendance
+    }));
+
+  } catch (err) {
+
+    console.error("Monthly Attendance Error:", err);
+
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({
+      success: false,
+      message: "Server error"
+    }));
+  }
+  
+  
+}
+
+});
+
+server.listen(5000, () => {
+  console.log("🚀 SAM SYSTEM Backend LIVE");
+  console.log("🌐 Server running at: http://localhost:5000");
+});

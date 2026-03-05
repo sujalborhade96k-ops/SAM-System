@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Player Profile • SAM SYSTEM</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-black min-h-screen font-sans">
+
+  <!-- HEADER -->
+  <header class="bg-gradient-to-r from-gray-900 to-black border-b-2 border-green-600 p-6 sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <button onclick="goBack()" class="p-3 hover:bg-white/10 rounded-xl transition-all">
+          <span class="text-xl">←</span>
+        </button>
+        <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
+          <span class="text-2xl">👤</span>
+        </div>
+        <div id="academyTitle" class="min-w-0">
+          <h1 class="text-2xl font-black text-white tracking-tight truncate">Loading...</h1>
+          <p class="text-green-400 text-sm font-semibold">VISITOR MODE</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button onclick="logout()" class="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-xl text-white font-semibold transition-all duration-200">
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN PROFILE -->
+  <div class="max-w-5xl mx-auto p-6 pb-12">
+    
+    <!-- LOADING STATE -->
+    <div id="loadingState" class="text-center py-20">
+      <div class="w-20 h-20 bg-green-500/30 rounded-full mx-auto mb-6 flex items-center justify-center animate-pulse">
+        <span class="text-2xl">👤</span>
+      </div>
+      <p class="text-xl text-gray-400">Loading player profile...</p>
+    </div>
+
+    <!-- PROFILE CONTENT -->
+    <div id="profileContent" class="hidden">
+      
+      <!-- PLAYER HEADER -->
+      <div class="text-center mb-16">
+        <div id="playerAvatar" class="w-36 h-36 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto mb-8 shadow-2xl border-6 border-white/50 flex items-center justify-center text-6xl font-black">
+          <!-- Dynamic emoji -->
+        </div>
+        <div id="playerName" class="text-5xl font-black text-white mb-3 tracking-tight">Loading...</div>
+        <div id="playerRole" class="text-2xl font-bold text-green-400 mb-2 px-8 py-2 bg-green-500/20 rounded-2xl">Loading...</div>
+        <div id="playerAcademy" class="text-lg text-gray-300 font-semibold">Loading...</div>
+      </div>
+
+      <!-- EXPANDED DETAILS CARDS (Full Width) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        
+        <!-- BASIC INFO CARD (Expanded) -->
+        <div class="login-card bg-gradient-to-b from-gray-900/90 to-black/60 border-2 border-green-500 p-10 rounded-3xl col-span-1">
+          <h3 class="text-2xl font-black text-white mb-8 flex items-center">
+            <span class="w-10 h-10 bg-green-500 rounded-2xl flex items-center justify-center mr-4 text-xl">📋</span>
+            Player Details
+          </h3>
+          <div class="space-y-6 text-sm" id="basicInfo">
+            <!-- Dynamic expanded content -->
+          </div>
+        </div>
+
+        <!-- CONTACT & ACADEMY INFO CARD (Expanded) -->
+        <div class="login-card bg-gradient-to-b from-gray-900/90 to-black/60 border-2 border-emerald-500 p-10 rounded-3xl col-span-1">
+          <h3 class="text-2xl font-black text-white mb-8 flex items-center">
+            <span class="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center mr-4 text-xl">📞</span>
+            Contact & Academy
+          </h3>
+          <div class="space-y-6 text-sm" id="contactInfo">
+            <!-- Dynamic expanded content -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BACK BUTTON -->
+      <div class="text-center">
+        <p class="text-gray-400 mb-8 text-lg">👀 Visitor Mode - Contact academy for enrollment</p>
+        <button onclick="goBack()" class="px-16 py-5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-3xl text-xl shadow-2xl transition-all duration-300">
+          ← Back to Students
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ERROR STATE -->
+    <div id="errorState" class="text-center py-20 hidden">
+      <div class="w-24 h-24 bg-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+        <span class="text-4xl">⚠️</span>
+      </div>
+      <h3 class="text-2xl font-black text-white mb-4">Player Not Found</h3>
+      <p class="text-gray-400 mb-8">This player profile is not available</p>
+      <button onclick="goBack()" class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:from-green-600 hover:to-green-700">
+        ← Back to Students
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Sport-specific avatars
+    const sportAvatars = {
+      'Football': '⚽', 'Cricket': '🏏', 'Tennis': '🎾', 'Badminton': '🏸',
+      'Basketball': '🏀', 'Volleyball': '🏐', 'Table Tennis': '🏓', 'Hockey': '🏑'
+    };
+
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', async () => {
+      const visitorSession = localStorage.getItem('visitorSession');
+      if (!visitorSession) {
+        alert('👋 Please login as Visitor');
+        window.location.href = 'index.html';
+        return;
+      }
+      await loadPlayerProfile();
+    });
+
+    async function loadPlayerProfile() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const studentId = urlParams.get('studentId');
+      const academyId = urlParams.get('academyId');
+      
+      if (!studentId || !academyId) {
+        showError();
+        return;
+      }
+
+      try {
+        document.getElementById('loadingState').style.display = 'block';
+        
+        // Get academy info
+        const academyRes = await fetch(`http://localhost:5000/api/academy/${academyId}`);
+        const academyData = await academyRes.json();
+        const academyName = academyData.academy?.name || 'Academy';
+        
+        document.getElementById('academyTitle').innerHTML = `
+          <h1 class="text-2xl font-black text-white tracking-tight truncate">${academyName}</h1>
+          <p class="text-green-400 text-sm font-semibold">VISITOR MODE</p>
+        `;
+
+        // Get students and find specific student
+        const studentRes = await fetch(`http://localhost:5000/api/students/${academyId}`);
+        const studentsData = await studentRes.json();
+        const students = studentsData.students || [];
+        const student = students.find(s => s._id === studentId);
+        
+        if (!student) {
+          throw new Error('Student not found');
+        }
+
+        displayProfile(student, academyName);
+        
+      } catch (err) {
+        console.error('Profile load error:', err);
+        showError();
+      }
+    }
+
+    function displayProfile(student, academyName) {
+      // Hide loading, show content
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('profileContent').classList.remove('hidden');
+      
+      // Avatar
+      const avatar = sportAvatars[student.sport] || '👤';
+      document.getElementById('playerAvatar').innerHTML = avatar;
+      
+      // Header
+      document.getElementById('playerName').textContent = student.name;
+      document.getElementById('playerRole').textContent = `${student.sport} Player`;
+      document.getElementById('playerAcademy').textContent = academyName;
+      
+      // EXPANDED BASIC INFO (8 detailed rows)
+      document.getElementById('basicInfo').innerHTML = `
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Full Name</span>
+          <span class="text-white font-bold text-lg">${student.name || '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Sport</span>
+          <span class="text-green-400 font-bold text-lg">${student.sport || '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Age</span>
+          <span class="text-white font-bold text-lg">${student.age || '-'} years</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Batch</span>
+          <span class="text-blue-400 font-bold text-lg">${student.batch || '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Student ID</span>
+          <span class="text-purple-400 font-bold text-lg">${student._id || '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Join Date</span>
+          <span class="text-white font-bold text-lg">${student.createdAt ? new Date(student.createdAt).getFullYear() : '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Status</span>
+          <span class="text-green-400 font-bold text-lg">Active Player</span>
+        </div>
+      `;
+      
+      // EXPANDED CONTACT INFO (6 detailed rows)
+      document.getElementById('contactInfo').innerHTML = `
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Academy</span>
+          <span class="text-emerald-400 font-bold text-lg">${academyName}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Email</span>
+          <span class="text-white font-bold text-lg">${student.email || '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Phone</span>
+          <span class="text-white font-bold text-lg">${student.contact || '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Academy ID</span>
+          <span class="text-purple-400 font-bold text-lg">${student.academyId || '-'}</span>
+        </div>
+        <div class="flex justify-between py-4 border-b border-white/10 items-center">
+          <span class="text-gray-300 font-medium">Location</span>
+          <span class="text-white font-bold text-lg">Pune, Maharashtra</span>
+        </div>
+        <div class="flex justify-between py-4 items-center">
+          <span class="text-gray-300 font-medium">Coach Contact</span>
+          <span class="text-emerald-400 font-bold text-lg">Academy Office</span>
+        </div>
+      `;
+    }
+
+    function showError() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').classList.remove('hidden');
+    }
+
+    // Navigation
+    function goBack() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const academyId = urlParams.get('academyId');
+      window.location.href = `visitor_students.html?academyId=${academyId}`;
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SAM SYSTEM - Welcome</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-black min-h-screen font-sans">
+
+  <!-- HERO SECTION -->
+  <div class="flex flex-col min-h-screen items-center justify-center p-4 text-center">
+    <!-- LOGO -->
+    <div class="mb-12">
+      <div class="w-24 h-24 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl border-4 border-white">
+        <span class="text-3xl">⚽</span>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
+        SAM SYSTEM
+      </h1>
+    </div>
+
+    <!-- INFO SECTION -->
+    <div class="max-w-2xl mx-auto mb-16 px-4">
+      <div class="login-card bg-gradient-to-b from-gray-900/90 to-black/50 backdrop-blur-xl border-2 border-white/20 p-6 md:p-8 lg:p-12 rounded-3xl mb-8 max-h-[40vh] overflow-y-auto">
+        <h2 class="text-xl md:text-2xl lg:text-3xl font-black text-white mb-4">🏟️ Complete Academy Solution</h2>
+        <p class="text-gray-300 leading-relaxed text-base sm:text-lg md:text-xl mb-6">
+          SAM SYSTEM streamlines sports academy management by providing dedicated portals for managers, students, and visitors. 
+          Managers efficiently handle student enrollment, attendance tracking, fee collection, and performance reports from one dashboard. 
+          Students access their personal training schedules, live attendance status, fee payments, and progress analytics across multiple academies. 
+          Visitors can explore sports programs, academy details, and top student achievements.
+        </p>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full max-w-2xl px-4">
+      <div class="group">
+        <a href="index.html" class="block login-card bg-gradient-to-b from-gray-900 to-black border-2 border-blue-500 hover:border-blue-400 p-8 md:p-10 text-center rounded-3xl transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl h-full flex flex-col justify-center">
+          <div class="w-16 md:w-20 h-16 md:h-20 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-transform">
+            <span class="text-2xl md:text-3xl">🔑</span>
+          </div>
+          <h3 class="text-xl md:text-2xl font-black text-white mb-2 md:mb-4">LOGIN</h3>
+          <p class="text-blue-400 font-semibold text-base md:text-lg mb-2">Existing users enter here</p>
+          <p class="text-gray-400 text-xs md:text-sm">Demo: acaduser/pass | stduser/pass | visituser/pass</p>
+        </a>
+      </div>
+
+      <div class="group">
+        <button onclick="showRegister()" class="w-full login-card bg-gradient-to-b from-gray-900 to-black border-2 border-green-500 hover:border-green-400 p-8 md:p-10 text-center rounded-3xl transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl h-full flex flex-col justify-center">
+          <div class="w-16 md:w-20 h-16 md:h-20 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-transform">
+            <span class="text-2xl md:text-3xl">📝</span>
+          </div>
+          <h3 class="text-xl md:text-2xl font-black text-white mb-2 md:mb-4">REGISTER</h3>
+          <p class="text-green-400 font-semibold text-base md:text-lg">New users sign up here</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER MODAL -->
+  <div id="registerModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-lg mx-auto max-h-[95vh] flex flex-col">
+      <div class="login-card bg-gradient-to-b from-gray-900 to-black border-2 border-green-600 rounded-3xl flex-1 flex flex-col overflow-hidden max-h-[95vh]">
+        <div class="p-6 md:p-8 border-b border-white/10 flex items-center justify-between">
+          <h2 class="text-2xl md:text-3xl font-black text-white" id="modalTitle">Create New Account</h2>
+          <button onclick="hideRegister()" class="p-2 hover:bg-white/20 rounded-xl transition-all text-xl">
+            <span>✕</span>
+          </button>
+        </div>
+
+        <div id="registerContent" class="flex-1 overflow-y-auto p-6 md:p-8 pb-16">
+
+          <!-- STEP 1 -->
+          <div id="step1" class="text-center">
+            <h3 class="text-xl md:text-2xl font-black text-white mb-6">Select your role</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 max-h-96 overflow-y-auto">
+              <div class="group p-6 bg-white/5 border-2 border-blue-500 rounded-2xl cursor-pointer hover:border-blue-400 hover:bg-white/10 transition-all min-h-[120px] flex flex-col items-center justify-center" onclick="selectRole('student')">
+                <div class="w-16 h-16 bg-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span class="text-2xl">🎓</span>
+                </div>
+                <h4 class="text-lg font-black text-white mb-2">STUDENT</h4>
+                <p class="text-gray-300 text-xs md:text-sm">Track progress & schedules</p>
+              </div>
+
+              <div class="group p-6 bg-white/5 border-2 border-red-500 rounded-2xl cursor-pointer hover:border-red-400 hover:bg-white/10 transition-all min-h-[120px] flex flex-col items-center justify-center" onclick="selectRole('academy')">
+                <div class="w-16 h-16 bg-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span class="text-2xl">👨‍💼</span>
+                </div>
+                <h4 class="text-lg font-black text-white mb-2">ACADEMY MANAGER</h4>
+                <p class="text-gray-300 text-xs md:text-sm">Manage your academy</p>
+              </div>
+
+              <div class="group p-6 bg-white/5 border-2 border-emerald-500 rounded-2xl cursor-pointer hover:border-emerald-400 hover:bg-white/10 transition-all min-h-[120px] flex flex-col items-center justify-center" onclick="selectRole('visitor')">
+                <div class="w-16 h-16 bg-emerald-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <span class="text-2xl">👀</span>
+                </div>
+                <h4 class="text-lg font-black text-white mb-2">VISITOR</h4>
+                <p class="text-gray-300 text-xs md:text-sm">Explore academies</p>
+              </div>
+            </div>
+            <button onclick="showLogin()" class="text-blue-400 hover:text-blue-300 text-sm font-semibold underline">
+              Already have account? Login →
+            </button>
+          </div>
+
+          <!-- STEP 2 FORM -->
+          <div id="step2" class="hidden">
+            <form id="registerForm" class="space-y-4 max-h-[60vh] overflow-y-auto">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                <input type="text" id="firstName" name="firstName" placeholder="First Name *" class="w-full input-field py-3 px-4 text-sm" required>
+                <input type="text" id="lastName" name="lastName" placeholder="Last Name *" class="w-full input-field py-3 px-4 text-sm" required>
+                <input type="email" id="email" name="email" placeholder="Email Address *" class="w-full input-field py-3 px-4 text-sm" required>
+                <input type="tel" id="phone" name="phone" placeholder="Phone (optional)" class="w-full input-field py-3 px-4 text-sm">
+                <input type="password" id="password" name="password" placeholder="Password *" class="w-full input-field py-3 px-4 text-sm" minlength="6" required>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password *" class="w-full input-field py-3 px-4 text-sm" required>
+              </div>
+              <div id="roleSpecific" class="space-y-4 pt-2"></div>
+              <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-white/10">
+                <button type="button" onclick="prevStep()" class="flex-1 py-3 px-4 bg-white/10 hover:bg-white/20 border border-white/30 rounded-xl text-white font-semibold text-sm transition-all">
+                  ← Previous
+                </button>
+                <button type="button" onclick="registerUser()" class="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-xl text-sm shadow-lg transition-all">
+                  Complete Registration
+                </button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+let selectedRole = '';
+
+function showRegister() {
+  document.getElementById('registerModal').classList.remove('hidden');
+  document.getElementById('step1').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideRegister() {
+  document.getElementById('registerModal').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('registerForm').reset();
+  document.getElementById('roleSpecific').innerHTML = '';
+  selectedRole = '';
+}
+
+function selectRole(role, event) {
+  selectedRole = role;
+
+  // Highlight selected card
+  document.querySelectorAll('#step1 .group').forEach(card => {
+    card.classList.remove('border-green-400', 'bg-green-500/10', 'ring-4', 'ring-green-400/30');
+  });
+  if (event) event.currentTarget.classList.add('border-green-400', 'bg-green-500/10', 'ring-4', 'ring-green-400/30');
+
+  document.getElementById('step1').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+
+  loadRoleSpecificFields(role);
+}
+
+function loadRoleSpecificFields(role) {
+  const container = document.getElementById('roleSpecific');
+  let fields = '';
+
+  if (role === 'student') {
+    fields = `
+      <div class="sm:col-span-2">
+        <label class="block text-xs md:text-sm font-semibold text-gray-300 mb-1">Select Academy *</label>
+        <select name="academyId" id="academySelect" class="w-full input-field py-3 px-4 text-sm" required>
+          <option value="">Loading academies...</option>
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-xs md:text-sm font-semibold text-gray-300 mb-1">Sport *</label>
+        <select name="sport" class="w-full input-field py-3 px-4 text-sm" required>
+          <option value="">Select Sport</option>
+          <option value="Football">⚽ Football</option>
+          <option value="Cricket">🏏 Cricket</option>
+          <option value="Tennis">🎾 Tennis</option>
+          <option value="Badminton">🏸 Badminton</option>
+        </select>
+      </div>
+    `;
+    container.innerHTML = fields;
+    loadAcademies();
+  } else if (role === 'academy') {
+    fields = `
+      <div class="sm:col-span-2">
+        <label class="block text-xs md:text-sm font-semibold text-gray-300 mb-1">Academy Name *</label>
+        <input type="text" name="academyName" placeholder="Your Academy Name" class="w-full input-field py-3 px-4 text-sm" required>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <input type="text" name="city" placeholder="City" class="w-full input-field py-3 px-4 text-sm" required>
+        <input type="text" name="state" placeholder="State" class="w-full input-field py-3 px-4 text-sm" required>
+      </div>
+    `;
+    container.innerHTML = fields;
+  } else {
+    // Visitor
+    fields = `
+      <div class="sm:col-span-2">
+        <input type="text" name="purpose" placeholder="Purpose of Visit (Scouting/Enquiry)" class="w-full input-field py-3 px-4 text-sm">
+      </div>
+    `;
+    container.innerHTML = fields;
+  }
+}
+
+async function loadAcademies() {
+  const select = document.getElementById('academySelect');
+  if (!select) return;
+
+  try {
+    const res = await fetch('http://localhost:5000/api/academies');
+    const data = await res.json();
+
+    select.innerHTML = '<option value="">Select Academy</option>';
+    data.forEach(a => {
+      const option = document.createElement('option');
+      option.value = a._id;
+      option.textContent = a.name;
+      select.appendChild(option);
+    });
+  } catch(err) {
+    console.error('Failed to load academies:', err);
+    select.innerHTML = '<option value="">Failed to load academies</option>';
+  }
+}
+
+function prevStep() {
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+}
+
+async function registerUser() {
+  const form = document.getElementById('registerForm');
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData);
+
+  if (!selectedRole) {
+    alert('❌ Please select a role!');
+    return;
+  }
+
+  if (data.password !== data.confirmPassword) {
+    alert('❌ Passwords do not match!');
+    return;
+  }
+
+  data.role = selectedRole;
+
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert(`✅ Registration Successful!\n\nUsername: ${result.username}\nPassword: ${data.password}`);
+      hideRegister();
+    } else {
+      alert('❌ Registration failed: ' + (result.message || 'Unknown error'));
+    }
+  } catch(err) {
+    console.error(err);
+    alert('❌ Backend not running or network error. Check your server.');
+  }
+}
+
+function showLogin() {
+  window.location.href = 'index.html';
+}
+
+// Close modal on outside click or Escape
+document.getElementById('registerModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) hideRegister();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') hideRegister();
+});
+</script>
+
+</body>
+</html>

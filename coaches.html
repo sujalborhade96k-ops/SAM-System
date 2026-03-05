@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coaches Management - SAM SYSTEM</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-black min-h-screen font-sans">
+  
+  <!-- MAIN CONTENT (INSTANT LOAD) -->
+  <div id="main-content">
+    
+    <!-- TOP NAVIGATION -->
+    <nav class="bg-gray-900 border-b-2 border-red-500 shadow-lg sticky top-0 z-50">
+      <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+          <a href="academy_login.html" class="flex items-center mr-4 hover:text-red-400 transition-colors">
+            <span class="text-2xl">←</span>
+          </a>
+          <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-xl">⚽</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-white">COACHES DIRECTORY</h2>
+            <p class="text-red-400 text-sm font-semibold">Manage Coaches • Schedules • Skills</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a href="students.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Students</a>
+          <a href="attendance.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Attendance</a>
+          <a href="fees.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Fees</a>
+          <button onclick="exportCoaches()" class="btn-export bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg">📊 EXPORT</button>
+          <button onclick="logout()" class="btn-logout bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg">LOGOUT</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- AUTH CHECK (BACKGROUND) -->
+    <div id="auth-redirect" class="hidden"></div>
+	 <!-- FILTERS -->
+      <div class="bg-gray-900 border-2 border-red-500/50 rounded-2xl p-6 mb-8">
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+          <div class="flex-1 relative">
+            <input type="text" id="search-coaches" placeholder="🔍 Search coaches by name..." class="input-field pl-12 pr-4" onkeyup="filterCoaches()">
+          </div>
+          <select id="filter-sport" class="input-field px-4 py-3" onchange="filterCoaches()">
+            <option>All Sports</option>
+            <option>Football</option>
+            <option>Cricket</option>
+            <option>Tennis</option>
+            <option>Badminton</option>
+          </select>
+          <button onclick="clearFilters()" class="btn-login bg-gray-600 hover:bg-gray-700 px-8 py-3 font-bold rounded-xl">CLEAR</button>
+        </div>
+      </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="p-6 md:p-8 max-w-7xl mx-auto">
+      
+      <!-- STATS & ADD COACH -->
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
+        <div>
+          <h1 class="text-3xl lg:text-4xl font-black text-white mb-2">Coach Directory</h1>
+          <p class="text-gray-300 text-lg">8 Active Coaches • 5 Sports Covered</p>
+        </div>
+        <button onclick="openCoachModal()" class="btn-add bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-black px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all text-lg">
+          ➕ ADD NEW COACH
+        </button>
+      </div>
+
+      <!-- SUMMARY CARDS -->
+      <div id="coaches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+        <div class="stat-card bg-gradient-to-r from-blue-900/80 to-black border-2 border-blue-500">
+          <div class="text-4xl font-black text-blue-400 mb-2">8</div>
+          <div class="text-gray-300 font-semibold">Active Coaches</div>
+          <div class="text-blue-400 text-sm mt-1">Full Time + Part Time</div>
+        </div>
+        <div class="stat-card bg-gradient-to-r from-green-900/80 to-black border-2 border-green-500">
+          <div class="text-4xl font-black text-green-400 mb-2">5</div>
+          <div class="text-gray-300 font-semibold">Sports Covered</div>
+          <div class="text-green-400 text-sm mt-1">Football, Cricket, Tennis...</div>
+        </div>
+        <div class="stat-card bg-gradient-to-r from-purple-900/80 to-black border-2 border-purple-500">
+          <div class="text-4xl font-black text-purple-400 mb-2">42</div>
+          <div class="text-gray-300 font-semibold">Weekly Sessions</div>
+          <div class="text-purple-400 text-sm mt-1">Mon-Sat Schedule</div>
+        </div>
+      </div>
+
+     
+
+      <!-- COACHES GRID - ALL IDENTICAL STRUCTURE -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ADD/EDIT COACH MODAL -->
+  <div id="coach-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border-2 border-red-500 rounded-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h3 id="modal-title" class="text-2xl font-black text-white">Add New Coach</h3>
+        <button onclick="closeCoachModal()" class="text-white hover:text-red-400 text-2xl font-bold">×</button>
+      </div>
+      <form id="coach-form" class="space-y-4">
+        <input type="text" id="coach-name" placeholder="Full Name" class="input-field" required>
+        <select id="coach-sport" class="input-field" required>
+          <option value="">Select Sport</option>
+          <option value="Football">Football</option>
+          <option value="Cricket">Cricket</option>
+          <option value="Tennis">Tennis</option>
+          <option value="Badminton">Badminton</option>
+        </select>
+        <input type="text" id="coach-schedule" placeholder="Schedule (Mon/Wed 4-6PM)" class="input-field" required>
+        <input type="number" id="coach-experience" placeholder="Years of Experience" class="input-field" min="1" required>
+        <input type="tel" id="coach-contact" placeholder="Contact Number" class="input-field" required>
+        <div class="flex space-x-3 pt-2">
+          <button type="submit" class="flex-1 btn-login bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-xl">SAVE COACH</button>
+          <button type="button" onclick="closeCoachModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl">CANCEL</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<script>
+
+let coaches = [];
+let editMode = false;
+let editingId = null;
+
+const API_BASE = "http://localhost:5000";
+
+/* ===========================
+   AUTH CHECK
+=========================== */
+const storedUser = localStorage.getItem("samsUser");
+const academyId = localStorage.getItem("academyId");
+
+if (!storedUser || !academyId) {
+  logout();
+}
+
+const user = JSON.parse(storedUser);
+if (user.role !== "academy") {
+  logout();
+}
+
+/* ===========================
+   FETCH WRAPPER
+=========================== */
+async function samsFetch(endpoint, options = {}) {
+
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "academyId": academyId,
+      ...(options.headers || {})
+    }
+  });
+
+  if (response.status === 401) {
+    alert("Session expired. Please login again.");
+    logout();
+    return;
+  }
+
+  return response.json();
+}
+
+/* ===========================
+   LOAD DATA
+=========================== */
+window.addEventListener("DOMContentLoaded", () => {
+
+  // Clear dummy static cards
+  document.getElementById("coaches-grid").innerHTML = "";
+
+  loadCoaches();
+
+  document.getElementById("coach-form")
+    .addEventListener("submit", addCoach);
+});
+
+async function loadCoaches() {
+
+  const data = await samsFetch("/api/coaches");
+
+  if (data && data.success) {
+    coaches = data.coaches;
+    renderCoaches();
+  }
+}
+
+/* ===========================
+   RENDER COACHES
+=========================== */
+function renderCoaches() {
+
+  const container = document.getElementById("coaches-grid");
+  container.innerHTML = "";
+
+  if (coaches.length === 0) {
+    container.innerHTML = `
+      <div class="text-gray-400 text-center col-span-3">
+        No Coaches Added Yet
+      </div>
+    `;
+    return;
+  }
+
+  coaches.forEach(coach => {
+
+    container.innerHTML += `
+      <div class="coach-card bg-gray-900 border-2 border-red-500/50 hover:border-red-400 rounded-3xl p-8 transition-all">
+
+        <h3 class="text-2xl font-black text-white text-center mb-4">
+          ${coach.name}
+        </h3>
+
+        <div class="space-y-3 mb-6 text-center">
+          <div class="text-red-400 font-semibold">${coach.sport}</div>
+          <div class="text-green-400 font-semibold">
+            ${coach.schedule || "Schedule Not Set"}
+          </div>
+          <div class="text-yellow-400 font-semibold">
+            ${(coach.experience || 0)} Years Exp.
+          </div>
+        </div>
+
+        <div class="flex space-x-2">
+          <button onclick="editCoach('${coach._id}')"
+            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-xl">
+            EDIT
+          </button>
+
+          <button onclick="deleteCoach('${coach._id}')"
+            class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl">
+            DELETE
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
+}
+
+/* ===========================
+   ADD / UPDATE COACH
+=========================== */
+async function addCoach(e) {
+
+  e.preventDefault();
+
+  const coachData = {
+    name: document.getElementById("coach-name").value,
+    sport: document.getElementById("coach-sport").value,
+    schedule: document.getElementById("coach-schedule").value,
+    experience: Number(document.getElementById("coach-experience").value),
+    contact: document.getElementById("coach-contact").value
+  };
+
+  const endpoint = editMode
+    ? `/api/coaches/${editingId}`
+    : "/api/coaches";
+
+  const method = editMode ? "PUT" : "POST";
+
+  const data = await samsFetch(endpoint, {
+    method: method,
+    body: JSON.stringify(coachData)
+  });
+
+  if (data && data.success) {
+
+    alert(editMode ? "Coach Updated" : "Coach Added");
+
+    editMode = false;
+    editingId = null;
+
+    document.getElementById("coach-form").reset();
+    closeCoachModal();
+    loadCoaches();
+  }
+}
+
+/* ===========================
+   EDIT
+=========================== */
+function editCoach(id) {
+
+  const coach = coaches.find(c => c._id === id);
+  if (!coach) return;
+
+  document.getElementById("coach-name").value = coach.name;
+  document.getElementById("coach-sport").value = coach.sport;
+  document.getElementById("coach-schedule").value = coach.schedule || "";
+  document.getElementById("coach-experience").value = coach.experience || "";
+  document.getElementById("coach-contact").value = coach.contact || "";
+
+  editMode = true;
+  editingId = id;
+
+  openCoachModal();
+}
+
+/* ===========================
+   DELETE
+=========================== */
+async function deleteCoach(id) {
+
+  if (!confirm("Delete this coach?")) return;
+
+  const data = await samsFetch(`/api/coaches/${id}`, {
+    method: "DELETE"
+  });
+
+  if (data && data.success) {
+    loadCoaches();
+  }
+}
+
+/* ===========================
+   FILTER
+=========================== */
+function filterCoaches() {
+
+  const searchValue =
+    document.getElementById("search-coaches").value.toLowerCase();
+
+  const sportValue =
+    document.getElementById("filter-sport").value;
+
+  const filtered = coaches.filter(coach => {
+
+    const matchName =
+      coach.name.toLowerCase().includes(searchValue);
+
+    const matchSport =
+      sportValue === "All Sports" ||
+      coach.sport === sportValue;
+
+    return matchName && matchSport;
+  });
+
+  renderFiltered(filtered);
+}
+
+function renderFiltered(list) {
+
+  const container = document.getElementById("coaches-grid");
+  container.innerHTML = "";
+
+  list.forEach(coach => {
+
+    container.innerHTML += `
+      <div class="coach-card bg-gray-900 border-2 border-red-500/50 rounded-3xl p-8">
+
+        <h3 class="text-2xl font-black text-white text-center mb-4">
+          ${coach.name}
+        </h3>
+
+        <div class="space-y-3 mb-6 text-center">
+          <div class="text-red-400 font-semibold">${coach.sport}</div>
+          <div class="text-green-400 font-semibold">
+            ${coach.schedule || "Schedule Not Set"}
+          </div>
+          <div class="text-yellow-400 font-semibold">
+            ${(coach.experience || 0)} Years Exp.
+          </div>
+        </div>
+
+        <div class="flex space-x-2">
+          <button onclick="editCoach('${coach._id}')"
+            class="flex-1 bg-blue-500 text-white font-bold py-2 rounded-xl">
+            EDIT
+          </button>
+
+          <button onclick="deleteCoach('${coach._id}')"
+            class="flex-1 bg-red-600 text-white font-bold py-2 rounded-xl">
+            DELETE
+          </button>
+        </div>
+
+      </div>
+    `;
+  });
+}
+
+function clearFilters() {
+  document.getElementById("search-coaches").value = "";
+  document.getElementById("filter-sport").value = "All Sports";
+  renderCoaches();
+}
+
+/* ===========================
+   EXPORT CSV
+=========================== */
+function exportCoaches() {
+
+  let csv = "Name,Sport,Schedule,Experience,Contact\n";
+
+  coaches.forEach(c => {
+    csv += `${c.name},${c.sport},${c.schedule || ""},${c.experience || 0},${c.contact || ""}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "coaches.csv";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+/* ===========================
+   MODAL
+=========================== */
+function openCoachModal() {
+  document.getElementById("coach-modal").classList.remove("hidden");
+}
+
+function closeCoachModal() {
+  document.getElementById("coach-modal").classList.add("hidden");
+}
+
+/* ===========================
+   LOGOUT
+=========================== */
+function logout() {
+  localStorage.removeItem("samsUser");
+  localStorage.removeItem("academyId");
+  window.location.href = "index.html";
+}
+
+</script>
+
+</body>
+</html>

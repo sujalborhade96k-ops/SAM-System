@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Attendance Management - SAM SYSTEM</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-black min-h-screen font-sans">
+  
+  <!-- AUTH CHECK -->
+  <div id="auth-check" class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="w-16 h-16 bg-red-500 rounded-xl flex items-center justify-center mx-auto mb-4 animate-spin">
+        <span>⚽</span>
+      </div>
+      <p class="text-white text-lg">Loading Attendance...</p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content" class="hidden">
+    
+    <!-- TOP NAVIGATION -->
+    <nav class="bg-gray-900 border-b-2 border-red-500 shadow-lg sticky top-0 z-50">
+      <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+          <a href="academy_login.html" class="flex items-center mr-4 hover:text-red-400 transition-colors">
+            <span class="text-2xl">←</span>
+          </a>
+          <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-xl">⚽</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-white">ATTENDANCE</h2>
+            <p class="text-red-400 text-sm font-semibold">Daily Tracking • Bulk Actions</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a href="students.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Students</a>
+          <a href="fees.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Fees</a>
+          <a href="coaches.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Coaches</a>
+          <button onclick="exportAttendance()" class="btn-export bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg transition-all">📊 EXPORT</button>
+          <button onclick="logout()" class="btn-logout bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg">LOGOUT</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="p-6 md:p-8 max-w-7xl mx-auto">
+      
+      <!-- DATE SELECTOR & SUMMARY -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+        
+        <!-- DATE SELECTOR -->
+        <div class="bg-gray-900 border-2 border-red-500 rounded-3xl p-8">
+          <h3 class="text-2xl font-black text-white mb-6 flex items-center">
+            <span class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center mr-4 text-2xl">📅</span>
+            Select Date
+          </h3>
+          <div class="space-y-4">
+            <div class="flex space-x-3">
+              <input type="date" id="attendance-date" value="2026-02-04" class="input-field flex-1" onchange="loadAttendanceForDate()">
+              <button onclick="todayAttendance()" class="btn-login bg-red-500 hover:bg-red-600 px-6 py-3 font-bold rounded-xl whitespace-nowrap">TODAY</button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+              <button onclick="prevDay()" class="bg-gray-800 hover:bg-red-500/30 text-white py-3 px-4 rounded-xl font-semibold text-sm transition-all">← Yesterday</button>
+			 <button onclick="openMonthlyModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-3 rounded-xl">📅 VIEW MONTHLY</button>
+			 
+			  
+              <button onclick="nextDay()" class="bg-gray-800 hover:bg-red-500/30 text-white py-3 px-4 rounded-xl font-semibold text-sm transition-all">Tomorrow →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATTENDANCE SUMMARY -->
+        <div class="bg-gradient-to-r from-green-900/80 to-black border-2 border-green-500 rounded-3xl p-8">
+          <h3 class="text-2xl font-black text-white mb-6">📊 Today's Summary</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="text-center">
+              <div class="text-4xl font-black text-green-400 mb-2" id="present-count">152</div>
+              <div class="text-gray-300 text-sm uppercase tracking-wide">Present</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-black text-red-400 mb-2" id="absent-count">4</div>
+              <div class="text-gray-300 text-sm uppercase tracking-wide">Absent</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-black text-white mb-2" id="total-students">156</div>
+              <div class="text-gray-300 text-sm uppercase tracking-wide">Total</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-black text-yellow-400 mb-2" id="attendance-rate">97.4%</div>
+              <div class="text-gray-300 text-sm uppercase tracking-wide">Rate</div>
+			 
+            </div>
+          </div>
+        </div>
+      
+      </div>
+     <div id="monthly-container" class="mt-8"></div>
+      <!-- BULK ACTIONS -->
+      <div class="bg-gray-900 border-2 border-red-500/50 rounded-2xl p-6 mb-8 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="flex flex-wrap gap-3">
+          <button onclick="markAllPresent()" class="bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all whitespace-nowrap">✅ Mark All Present</button>
+          <button onclick="markAllAbsent()" class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all whitespace-nowrap">❌ Mark All Absent</button>
+          <button onclick="resetAll()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all whitespace-nowrap">↻ Reset All</button>
+        </div>
+        <div class="text-right">
+          <span class="text-gray-400 text-sm">Selected: <span id="selected-count" class="font-bold text-white">0</span> / 156</span>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE TABLE -->
+      <div class="bg-gray-900 border-2 border-red-500 rounded-3xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gradient-to-r from-red-500 to-red-600">
+              <tr>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">
+                  <div class="flex items-center">
+                    <input type="checkbox" onchange="toggleSelectAll(this)">
+                    <span class="ml-3">NAME</span>
+                  </div>
+                </th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">SPORT</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">BATCH</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">STATUS</th>
+                <th class="px-6 py-5 text-left text-white font-black text-lg">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-tbody" class="divide-y divide-red-500/30">
+            
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SAVE BAR -->
+      <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-2xl shadow-2xl border-4 border-white/20 hidden lg:block z-40" id="save-bar">
+        <div class="flex items-center justify-between max-w-4xl mx-auto">
+          <div class="flex items-center space-x-4">
+            <span class="text-2xl">💾</span>
+            <span class="font-black text-lg">Unsaved Changes</span>
+          </div>
+          <div class="flex space-x-3">
+            <button onclick="saveAttendance()" class="bg-white text-red-600 font-black px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all whitespace-nowrap">SAVE ATTENDANCE</button>
+            <button onclick="discardChanges()" class="bg-white/50 text-white font-bold px-8 py-3 rounded-xl hover:bg-white/70 transition-all whitespace-nowrap">DISCARD</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+  <!-- MONTHLY MODAL -->
+<div id="monthly-modal" 
+class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
+
+  <div class="bg-gray-900 border-2 border-yellow-500 p-8 rounded-2xl w-96">
+    <h3 class="text-2xl font-bold text-white mb-6">Select Month</h3>
+
+    <div class="space-y-4">
+      <input type="month" id="monthly-picker" 
+      class="w-full p-3 rounded-lg bg-gray-800 text-white">
+
+      <div class="flex justify-end gap-3">
+        <button onclick="closeMonthlyModal()" 
+        class="bg-gray-600 px-4 py-2 rounded-lg text-white">
+        Cancel
+        </button>
+
+        <button onclick="generateMonthlyExcel()" 
+        class="bg-yellow-500 px-4 py-2 rounded-lg text-black font-bold">
+        Generate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+/* ======================================
+   GLOBAL CONFIG
+====================================== */
+
+const API_BASE = "http://localhost:5000";
+let students = [];
+let changesMade = false;
+
+/* ======================================
+   SAFE FETCH (MATCHES INDEX.HTML)
+====================================== */
+
+async function samsFetch(endpoint, options = {}) {
+
+  const academyId = localStorage.getItem("academyId");
+
+  if (!academyId) {
+    alert("Session expired. Please login again.");
+    logout();
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        "academyId": academyId,
+        ...(options.headers || {})
+      }
+    });
+
+    if (response.status === 401) {
+      alert("Session expired. Please login again.");
+      logout();
+      return null;
+    }
+
+    return await response.json();
+
+  } catch (err) {
+    console.error("Fetch Error:", err);
+    alert("⚠ Backend not running on port 5000");
+    return null;
+  }
+}
+
+/* ======================================
+   AUTH CHECK (MATCHES INDEX)
+====================================== */
+
+function checkManagerAccess() {
+
+  const storedUser = localStorage.getItem("samsUser");
+  const academyId = localStorage.getItem("academyId");
+
+  if (!storedUser || !academyId) {
+    logout();
+    return false;
+  }
+
+  const user = JSON.parse(storedUser);
+
+  if (user.role !== "academy") {
+    logout();
+    return false;
+  }
+
+  return true;
+}
+
+/* ======================================
+   MONTHLY ATTENDANCE VIEW
+====================================== */
+
+async function openMonthlyModal() {
+
+  const monthInput = document.getElementById("attendance-date").value;
+
+  if (!monthInput) {
+    alert("Select a date first");
+    return;
+  }
+
+  const date = new Date(monthInput);
+  const year = date.getFullYear();
+  const month = date.getMonth(); // 0-11
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Fetch attendance from backend
+  const data = await samsFetch(`/api/attendance/monthly?year=${year}&month=${month + 1}`);
+
+  if (!data || !data.success) {
+    alert("Failed to load monthly attendance");
+    return;
+  }
+
+  renderMonthlyTable(data.attendance, year, month, daysInMonth);
+} 
+function renderMonthlyTable(attendanceData, year, month, daysInMonth) {
+
+  const container = document.getElementById("monthly-container");
+
+  let headerRow = `<tr>
+      <th class="px-4 py-2">Student</th>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    headerRow += `<th class="px-2">${d}</th>`;
+  }
+
+  headerRow += `</tr>`;
+
+  let bodyRows = students.map(student => {
+
+    let row = `<tr>
+      <td class="px-4 py-2 font-bold">${student.name}</td>`;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+
+      const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
+      const record = attendanceData.find(a =>
+        a.studentId === student._id && a.date.startsWith(dateStr)
+      );
+
+      const status = record ? record.status : "-";
+
+      row += `<td class="text-center">${status === "PRESENT" ? "✅" : status === "ABSENT" ? "❌" : "-"}</td>`;
+    }
+
+    row += `</tr>`;
+    return row;
+
+  }).join("");
+
+  container.innerHTML = `
+    <div class="overflow-auto bg-gray-900 p-4 rounded-xl">
+      <table class="min-w-max text-white border">
+        ${headerRow}
+        ${bodyRows}
+      </table>
+    </div>
+  `;
+}
+
+/* ======================================
+   INIT ATTENDANCE PAGE
+====================================== */
+async function initAttendance() {
+
+  const hasAccess = checkManagerAccess();
+  if (!hasAccess) return;
+
+  document.getElementById("auth-check").classList.add("hidden");
+  document.getElementById("main-content").classList.remove("hidden");
+
+  setToday();
+  await loadStudents();
+  await loadAttendanceForDate();
+}
+/* ======================================
+   LOAD STUDENTS
+====================================== */
+
+async function loadStudents() {
+
+  const data = await samsFetch("/api/students");
+
+  if (data && data.success) {
+    students = data.students;
+    renderTable(students);
+  }
+}
+/* ======================================
+   LOAD ATTENDANCE
+====================================== */
+
+async function loadAttendanceForDate() {
+
+  const date = document.getElementById("attendance-date").value;
+
+  if (!date) return;
+
+  const data = await samsFetch(`/api/attendance?date=${date}`);
+
+  if (!data || !data.success) return;
+
+  const attendanceRecords = data.attendance;
+
+  document.querySelectorAll(".attendance-row").forEach(row => {
+
+    const studentId = row.dataset.id;
+
+    const record = attendanceRecords.find(a => a.studentId === studentId);
+
+    const badge = row.querySelector(".status-badge");
+
+    if (record && record.status === "ABSENT") {
+      badge.classList.remove("bg-green-500");
+      badge.classList.add("bg-red-500");
+      badge.textContent = "ABSENT";
+    } else {
+      badge.classList.remove("bg-red-500");
+      badge.classList.add("bg-green-500");
+      badge.textContent = "PRESENT";
+    }
+
+  });
+
+  updateSummary();
+}
+/* ======================================
+   LOAD ATTENDANCE FOR DATE
+====================================== */
+
+async function loadAttendanceForDate() {
+
+  const date = document.getElementById("attendance-date").value;
+
+  if (!date) return;
+
+  const data = await samsFetch(`/api/attendance?date=${date}`);
+
+  if (!data || !data.success) return;
+
+  const attendanceRecords = data.attendance;
+
+  document.querySelectorAll(".attendance-row").forEach(row => {
+
+    const studentId = row.dataset.id;
+
+    const record = attendanceRecords.find(a => a.studentId === studentId);
+
+    const badge = row.querySelector(".status-badge");
+
+    if (record && record.status === "ABSENT") {
+      badge.classList.remove("bg-green-500");
+      badge.classList.add("bg-red-500");
+      badge.textContent = "ABSENT";
+    } else {
+      badge.classList.remove("bg-red-500");
+      badge.classList.add("bg-green-500");
+      badge.textContent = "PRESENT";
+    }
+
+  });
+
+  updateSummary();
+}
+
+/* ======================================
+   saveAttendance
+====================================== */
+
+async function saveAttendance() {
+
+  const date = document.getElementById("attendance-date").value;
+
+  const records = [];
+
+  document.querySelectorAll(".attendance-row").forEach(row => {
+    const studentId = row.dataset.id;
+    const status = row.querySelector(".status-badge").innerText;
+
+    records.push({ studentId, status });
+  });
+
+  const result = await samsFetch("/api/attendance", {
+    method: "POST",
+    body: JSON.stringify({ date, records })
+  });
+
+  if (result && result.success) {
+
+    alert("✅ Attendance Saved");
+
+    changesMade = false;
+    document.getElementById("save-bar").classList.add("hidden");
+
+    updateSummary();
+
+    // 🔥 IMPORTANT PART
+    // If monthly view is visible, reload it
+    if (document.getElementById("monthly-container").innerHTML.trim() !== "") {
+      await openMonthlyModal();
+    }
+  }
+}
+/* ======================================
+   RENDER TABLE
+====================================== */
+
+function renderTable(list) {
+
+  const tbody = document.getElementById("attendance-tbody");
+
+  if (!list.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="text-center text-gray-400 py-20">
+          No students found
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = list.map(student => `
+    <tr class="attendance-row" data-id="${student._id}">
+      <td class="px-6 py-4 text-white">${student.name}</td>
+      <td class="px-6 py-4 text-white">${student.sport}</td>
+      <td class="px-6 py-4 text-white">${student.batch || ""}</td>
+      <td class="px-6 py-4">
+        <span onclick="toggleStatus(this)"
+          class="status-badge bg-green-500 text-white px-4 py-2 rounded-xl font-bold cursor-pointer">
+          PRESENT
+        </span>
+      </td>
+    </tr>
+  `).join("");
+}
+
+/* ======================================
+   STATUS TOGGLE
+====================================== */
+
+function toggleStatus(el) {
+
+  el.classList.toggle("bg-green-500");
+  el.classList.toggle("bg-red-500");
+
+  el.textContent =
+    el.classList.contains("bg-green-500") ? "PRESENT" : "ABSENT";
+
+  changesMade = true;
+}
+
+/* ======================================
+   SET TODAY DATE
+====================================== */
+
+function setToday() {
+  const today = new Date().toISOString().split("T")[0];
+  const input = document.getElementById("attendance-date");
+  if (input) input.value = today;
+}
+/* ======================================
+   DATE CONTROLS
+====================================== */
+
+function todayAttendance() {
+  setToday();
+}
+
+function prevDay() {
+  const input = document.getElementById("attendance-date");
+  if (!input.value) return;
+
+  const date = new Date(input.value);
+  date.setDate(date.getDate() - 1);
+  input.value = date.toISOString().split("T")[0];
+}
+
+function nextDay() {
+  const input = document.getElementById("attendance-date");
+  if (!input.value) return;
+
+  const date = new Date(input.value);
+  date.setDate(date.getDate() + 1);
+  input.value = date.toISOString().split("T")[0];
+}
+
+/* ======================================
+   BULK ACTIONS
+====================================== */
+
+function markAllPresent() {
+  document.querySelectorAll(".status-badge").forEach(el => {
+    el.classList.remove("bg-red-500");
+    el.classList.add("bg-green-500");
+    el.textContent = "PRESENT";
+  });
+}
+
+function markAllAbsent() {
+  document.querySelectorAll(".status-badge").forEach(el => {
+    el.classList.remove("bg-green-500");
+    el.classList.add("bg-red-500");
+    el.textContent = "ABSENT";
+  });
+}
+
+function resetAll() {
+  markAllPresent();
+}
+/* ======================================
+   TOGGLE Select(Simple Version)
+====================================== */
+function toggleStatus(el) {
+
+  el.classList.toggle("bg-green-500");
+  el.classList.toggle("bg-red-500");
+
+  el.textContent =
+    el.classList.contains("bg-green-500") ? "PRESENT" : "ABSENT";
+
+  changesMade = true;
+
+  document.getElementById("save-bar").classList.remove("hidden");
+
+  updateSummary();
+}
+/* ======================================
+  discardChanges
+====================================== */
+
+function discardChanges() {
+
+  changesMade = false;
+  loadAttendanceForDate();
+
+  document.getElementById("save-bar").classList.add("hidden");
+}
+
+/* ======================================
+   EXPORT (Final Correct Version)
+====================================== */
+
+async function exportAttendance() {
+
+  const selectedDate = document.getElementById("attendance-date").value;
+
+  if (!selectedDate) {
+    alert("Select a date first");
+    return;
+  }
+
+  const selected = new Date(selectedDate);
+  const month = selected.getMonth() + 1;
+  const year = selected.getFullYear();
+
+  try {
+
+    // ===============================
+    // FETCH STUDENTS
+    // ===============================
+    const studentsRes = await samsFetch("/api/students");
+    const students = studentsRes.students || [];
+
+    // ===============================
+    // FETCH MONTHLY ATTENDANCE
+    // ===============================
+    const monthRes = await samsFetch(
+      `/api/attendance/monthly?month=${month}&year=${year}`
+    );
+
+    const monthlyData = monthRes.attendance || [];
+
+    // ===============================
+    // CREATE ATTENDANCE MAP
+    // Structure:
+    // {
+    //   "2026-03-01": {
+    //        "studentId1": "Present",
+    //        "studentId2": "Absent"
+    //   }
+    // }
+    // ===============================
+    const attendanceMap = {};
+
+    monthlyData.forEach(record => {
+
+      const dateKey = record.date; // already stored as YYYY-MM-DD
+      const studentKey = String(record.studentId);
+
+      if (!attendanceMap[dateKey]) {
+        attendanceMap[dateKey] = {};
+      }
+
+      attendanceMap[dateKey][studentKey] = record.status;
+    });
+
+    // ===============================
+    // START CSV
+    // ===============================
+    let csv = "";
+
+    csv += `Monthly Attendance (${month}/${year})\n\n`;
+
+    // Header
+    csv += "Date/Day,";
+    students.forEach(s => {
+      csv += `"${s.name}",`;
+    });
+    csv += "\n";
+
+    // ===============================
+    // GENERATE DAYS
+    // ===============================
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    for (let d = 1; d <= daysInMonth; d++) {
+
+      const dateStr =
+        `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+      const dayName = new Date(dateStr)
+        .toLocaleDateString("en-IN", { weekday: "short" });
+
+      csv += `${String(d).padStart(2, "0")} ${dayName},`;
+
+      students.forEach(student => {
+
+        let shortStatus = "";
+
+        // If attendance exists for that day
+        if (attendanceMap[dateStr]) {
+
+          const rawStatus =
+            attendanceMap[dateStr][String(student._id)];
+
+          if (rawStatus) {
+
+            const clean =
+              rawStatus.toString().trim().toLowerCase();
+
+            shortStatus =
+              clean === "present" || clean === "p" ? "P" :
+              clean === "absent"  || clean === "a" ? "A" :
+              "";
+
+          } else {
+            // Student not found in that day's record → ABSENT
+            shortStatus = "A";
+          }
+        }
+
+        csv += `${shortStatus},`;
+      });
+
+      csv += "\n";
+    }
+
+    // ===============================
+    // DOWNLOAD FILE
+    // ===============================
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8;"
+    });
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `attendance_${month}_${year}.csv`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+
+    console.error("Export Error:", error);
+    alert("Failed to export attendance");
+  }
+}
+/* ======================================
+   LOGOUT (MATCHES INDEX)
+====================================== */
+
+function logout() {
+  localStorage.removeItem("samsUser");
+  localStorage.removeItem("academyId");
+  window.location.href = "index.html";
+}
+
+/* ======================================
+   UPDATE SUMMARY
+====================================== */
+
+function updateSummary() {
+
+  let present = 0;
+  let absent = 0;
+
+  document.querySelectorAll(".status-badge").forEach(el => {
+    if (el.innerText === "PRESENT") present++;
+    else absent++;
+  });
+
+  const total = present + absent;
+  const rate = total ? ((present / total) * 100).toFixed(1) : 0;
+
+  document.getElementById("present-count").innerText = present;
+  document.getElementById("absent-count").innerText = absent;
+  document.getElementById("total-students").innerText = total;
+  document.getElementById("attendance-rate").innerText = rate + "%";
+}
+
+/* ======================================
+   START
+====================================== */
+
+window.addEventListener("DOMContentLoaded", initAttendance);
+
+</script>
+</body>
+</html>

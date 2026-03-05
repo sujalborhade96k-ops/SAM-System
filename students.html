@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Students Management - SAM SYSTEM</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .input-field { @apply w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/50 transition-all; }
+    .btn-login { @apply bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all; }
+    .btn-edit { @apply bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm; }
+    .btn-delete { @apply bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold text-sm; }
+    .nav-link { @apply text-gray-300 hover:text-white hover:bg-red-500/20 px-4 py-2 rounded-xl font-semibold transition-all; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-black via-gray-900 to-black min-h-screen font-sans">
+
+  <!-- AUTH CHECK -->
+  <div id="auth-check" class="flex items-center justify-center min-h-screen bg-black/80 backdrop-blur-sm">
+    <div class="text-center animate-pulse">
+      <div class="w-20 h-20 bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+        <i class="fas fa-users text-3xl text-white"></i>
+      </div>
+      <h2 class="text-2xl font-black text-white mb-2">Loading Students...</h2>
+      <p class="text-gray-400">Verifying manager access</p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content" class="hidden">
+    
+   <!-- TOP NAVIGATION -->
+<nav class="bg-gray-900 border-b-2 border-red-500 shadow-lg sticky top-0 z-50">
+  <div class="flex items-center justify-between px-6 py-4">
+    
+    <!-- LEFT SIDE -->
+    <div class="flex items-center">
+      <a href="academy_login.html" 
+         class="flex items-center mr-4 hover:text-red-400 transition-colors">
+        <span class="text-2xl">←</span>
+      </a>
+
+      <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
+        <span class="text-xl">👨‍🎓</span>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-black text-white">STUDENTS</h2>
+        <p class="text-red-400 text-sm font-semibold">
+          Manage Academy Students
+        </p>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="flex items-center space-x-2">
+      <a href="students.html"
+         class="nav-link px-4 py-2 rounded-xl font-semibold bg-red-500/20 text-white">
+        Students
+      </a>
+
+      <a href="attendance.html"
+         class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20 text-white">
+        Attendance
+      </a>
+
+      <a href="fees.html"
+         class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20 text-white">
+        Fees
+      </a>
+
+      <button onclick="logout()"
+        class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg">
+        LOGOUT
+      </button>
+    </div>
+
+  </div>
+</nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="p-8 max-w-7xl mx-auto">
+      
+      <!-- HEADER & ADD BUTTON -->
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+        <div>
+          <h1 class="text-4xl lg:text-5xl font-black text-white mb-3">Student Directory</h1>
+          <p class="text-gray-300 text-xl">Manage students for your academy</p>
+        </div>
+        <button onclick="openAddModal()" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-black px-10 py-5 rounded-2xl shadow-2xl hover:shadow-3xl transition-all text-lg flex items-center gap-3">
+          <i class="fas fa-plus"></i> ADD NEW STUDENT
+        </button>
+      </div>
+
+      <!-- SEARCH & FILTER -->
+      <div class="bg-gray-900/50 backdrop-blur-xl border-2 border-red-500/30 rounded-3xl p-8 mb-12">
+        <div class="flex flex-col lg:flex-row gap-4 items-center">
+          <div class="flex-1 relative">
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="searchInput" placeholder="Search by name, contact..." class="input-field pl-12">
+          </div>
+          <select id="sportFilter" class="input-field">
+            <option>All Sports</option>
+            <option>Football</option>
+            <option>Cricket</option>
+            <option>Tennis</option>
+            <option>Badminton</option>
+          </select>
+          <button onclick="loadStudents()" class="btn-login px-8 whitespace-nowrap">
+            <i class="fas fa-sync-alt mr-2"></i> REFRESH
+          </button>
+        </div>
+      </div>
+
+      <!-- STUDENTS TABLE -->
+      <div class="bg-gray-900/50 backdrop-blur-xl border-2 border-red-500/30 rounded-3xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gradient-to-r from-red-500/90 to-red-600">
+              <tr>
+                <th class="px-8 py-6 text-left text-white font-black text-lg">NAME</th>
+                <th class="px-8 py-6 text-left text-white font-black text-lg">AGE</th>
+                <th class="px-8 py-6 text-left text-white font-black text-lg">SPORT</th>
+                <th class="px-8 py-6 text-left text-white font-black text-lg">BATCH</th>
+                <th class="px-8 py-6 text-left text-white font-black text-lg">CONTACT</th>
+                <th class="px-8 py-6 text-left text-white font-black text-lg">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTable" class="divide-y divide-red-500/20">
+              <tr>
+                <td colspan="6" class="px-8 py-20 text-center">
+                  <i class="fas fa-users text-6xl text-gray-600 mb-4"></i>
+                  <p class="text-gray-400 text-xl">Loading students...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ADD/EDIT MODAL -->
+  <div id="studentModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-6">
+    <div class="bg-gray-900 border-2 border-red-500 rounded-3xl p-10 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-8">
+        <h3 id="modalTitle" class="text-3xl font-black text-white">Add New Student</h3>
+        <button onclick="closeModal()" class="text-white hover:text-red-400 text-3xl font-bold">×</button>
+      </div>
+      
+      <form id="studentForm">
+        <input type="hidden" id="editId">
+        <div class="space-y-6">
+  <input type="text" id="studentName" placeholder="Full Name *" class="input-field" required>
+  <input type="number" id="studentAge" placeholder="Age (5-25) *" class="input-field" min="5" max="25" required>
+  <select id="studentSport" class="input-field" required>
+    <option value="">Select Sport *</option>
+    <option value="Football">Football</option>
+    <option value="Cricket">Cricket</option>
+    <option value="Tennis">Tennis</option>
+    <option value="Badminton">Badminton</option>
+  </select>
+  <input type="text" id="studentBatch" placeholder="Batch (A/B/C) *" class="input-field" required>
+  <input type="tel" id="studentContact" placeholder="Contact Number *" class="input-field" required>
+  <input type="email" id="studentEmail" placeholder="Email Address *" class="input-field" required>
+</div>
+        
+        <div class="flex space-x-4 pt-8">
+          <button type="submit" class="flex-1 btn-login text-lg py-4 font-black">
+            <i class="fas fa-save mr-2"></i> SAVE STUDENT
+          </button>
+          <button type="button" onclick="closeModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-6 rounded-2xl transition-all">CANCEL</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<script>
+
+let allStudents = [];
+
+const API_BASE = "http://localhost:5000";
+
+async function samsFetch(endpoint, options = {}) {
+
+  const academyId = localStorage.getItem("academyId");
+
+  if (!academyId) {
+    logout();
+    return;
+  }
+
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "academyId": academyId,
+      ...(options.headers || {})
+    }
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      alert("Session expired. Please login again.");
+      logout();
+    }
+    throw new Error("Request failed");
+  }
+
+  return response.json();
+}
+
+/* ==============================
+   INIT - AUTH CHECK
+============================== */
+async function init() {
+
+  const storedUser = localStorage.getItem('samsUser');
+
+  if (!storedUser) {
+    alert("❌ Please login first");
+    window.location.href = "index.html";
+    return;
+  }
+
+  const user = JSON.parse(storedUser);
+
+  if (user.role !== "academy") {
+    alert("❌ Academy Manager access required");
+    window.location.href = "index.html";
+    return;
+  }
+
+  document.getElementById("auth-check").classList.add("hidden");
+  document.getElementById("main-content").classList.remove("hidden");
+
+  loadStudents();
+}
+
+/* ==============================
+   LOAD STUDENTS
+============================== */
+async function loadStudents() {
+  try {
+
+    const data = await samsFetch("/api/students");
+
+    if (data && data.success) {
+      allStudents = data.students;
+      displayStudents(allStudents);
+     
+    }
+
+  } catch (error) {
+    console.error("Load Error:", error);
+    alert("⚠ Backend not running on port 5000");
+  }
+}
+
+/* ==============================
+   DISPLAY TABLE
+============================== */
+function displayStudents(students) {
+
+  const tbody = document.getElementById("studentsTable");
+
+  if (!students.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="px-8 py-20 text-center text-gray-400">
+          No students found
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = students.map(student => `
+  <tr class="hover:bg-red-500/10">
+    <td class="px-8 py-6 text-white font-bold">${student.name}</td>
+    <td class="px-8 py-6 text-gray-200">${student.age}</td>
+    <td class="px-8 py-6 text-gray-200">${student.sport}</td>
+    <td class="px-8 py-6 text-gray-200">${student.batch}</td>
+    <td class="px-8 py-6 text-gray-200">${student.contact}</td>
+    <td class="px-8 py-6">
+      <div class="flex gap-2">
+        <button onclick="viewStudent('${student._id}')" 
+          class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+          View
+        </button>
+        <button onclick="editStudent('${student._id}')" 
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+          Edit
+        </button>
+        <button onclick="deleteStudent('${student._id}')" 
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+          Delete
+        </button>
+      </div>
+    </td>
+  </tr>
+`).join("");
+}
+
+/* ==============================
+   VIEW STUDENT
+============================== */
+function viewStudent(id) {
+
+  const student = allStudents.find(s => s._id === id);
+  if (!student) return;
+
+  alert(
+    `👤 ${student.name}
+Age: ${student.age}
+Sport: ${student.sport}
+Batch: ${student.batch}
+Contact: ${student.contact}`
+  );
+}
+
+/* ==============================
+   SEARCH + FILTER
+============================== */
+
+function applyFilters() {
+
+  const searchText = document
+    .getElementById("searchInput")
+    .value
+    .toLowerCase();
+
+  const selectedSport = document
+    .getElementById("sportFilter")
+    .value;
+
+  const filtered = allStudents.filter(student => {
+
+    const matchesSearch =
+      student.name.toLowerCase().includes(searchText) ||
+      student.contact.includes(searchText);
+
+    const matchesSport =
+      selectedSport === "All Sports" ||
+      student.sport === selectedSport;
+
+    return matchesSearch && matchesSport;
+  });
+
+  displayStudents(filtered);
+}
+
+/* Trigger filter on typing */
+document
+  .getElementById("searchInput")
+  .addEventListener("input", applyFilters);
+
+/* Trigger filter on sport change */
+document
+  .getElementById("sportFilter")
+  .addEventListener("change", applyFilters);
+
+/* ==============================
+   EDIT STUDENT
+============================== */
+function editStudent(id) {
+
+  const student = allStudents.find(s => s._id === id);
+  if (!student) return;
+
+  document.getElementById("modalTitle").textContent = "Edit Student";
+  document.getElementById("editId").value = id;
+
+  document.getElementById("studentName").value = student.name;
+  document.getElementById("studentAge").value = student.age;
+  document.getElementById("studentSport").value = student.sport;
+  document.getElementById("studentBatch").value = student.batch;
+  document.getElementById("studentContact").value = student.contact;
+
+  document.getElementById("studentModal").classList.remove("hidden");
+}
+
+/* ==============================
+   OPEN / CLOSE MODAL
+============================== */
+function openAddModal() {
+  document.getElementById("modalTitle").textContent = "Add New Student";
+  document.getElementById("studentForm").reset();
+  document.getElementById("editId").value = "";
+  document.getElementById("studentModal").classList.remove("hidden");
+}
+
+function closeModal() {
+  document.getElementById("studentModal").classList.add("hidden");
+}
+
+/* ==============================
+   SAVE (ADD / UPDATE)
+============================== */
+/* ==============================
+   SAVE (ADD / UPDATE)
+============================== */
+document.getElementById("studentForm")
+  .addEventListener("submit", async (e) => {
+
+    e.preventDefault();
+
+    const id = document.getElementById("editId").value;
+
+    const studentData = {
+      name: document.getElementById("studentName").value,
+      age: parseInt(document.getElementById("studentAge").value),
+      sport: document.getElementById("studentSport").value,
+      batch: document.getElementById("studentBatch").value,
+      contact: document.getElementById("studentContact").value,
+      email: document.getElementById("studentEmail").value
+    };
+
+    console.log("Sending Data:", studentData); // 👈 ADD THIS
+
+    
+
+    try {
+
+      let data;
+
+      if (id) {
+        // UPDATE
+        data = await samsFetch(`/api/students/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(studentData)
+        });
+      } else {
+        // CREATE
+        data = await samsFetch("/api/students", {
+          method: "POST",
+          body: JSON.stringify(studentData)
+        });
+      }
+
+      if (data && data.success) {
+        closeModal();
+        loadStudents();
+        alert("✅ Student saved successfully");
+      }
+
+    } catch (error) {
+      console.error("Save Error:", error);
+      alert("❌ Failed to save student");
+    }
+});
+
+/* ==============================
+   DELETE
+============================== */
+async function deleteStudent(id) {
+
+  if (!confirm("Delete this student permanently?")) return;
+
+  try {
+
+    const data = await samsFetch(`/api/students/${id}`, {
+      method: "DELETE"
+    });
+
+    if (data && data.success) {
+      loadStudents();
+      alert("✅ Student deleted");
+    }
+
+  } catch (error) {
+    console.error("Delete Error:", error);
+    alert("❌ Failed to delete student");
+  }
+}
+
+/* ==============================
+   LOGOUT
+============================== */
+function logout() {
+  localStorage.removeItem("samsUser");
+  localStorage.removeItem("samsAcademy");
+  localStorage.removeItem("academyId");
+  window.location.href = "index.html";
+}
+/* ==============================
+   START PAGE
+============================== */
+window.addEventListener("DOMContentLoaded", init);
+
+</script>
+ 
+</body>
+</html>

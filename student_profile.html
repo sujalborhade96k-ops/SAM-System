@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Profile - SAM SYSTEM</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-black min-h-screen font-sans">
+  
+  <!-- AUTH CHECK -->
+  <div id="auth-check" class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="w-16 h-16 bg-red-500 rounded-xl flex items-center justify-center mx-auto mb-4 animate-spin">
+        <span>⚽</span>
+      </div>
+      <p class="text-white text-lg">Loading Student Profile...</p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content" class="hidden">
+    
+    <!-- TOP NAVIGATION -->
+    <nav class="bg-gray-900 border-b-2 border-red-500 shadow-lg sticky top-0 z-50">
+      <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center">
+          <a href="students.html" class="flex items-center mr-4 hover:text-red-400 transition-colors">
+            <span class="text-2xl">←</span>
+          </a>
+          <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-xl">⚽</span>
+          </div>
+          <div>
+            <h2 id="page-title" class="text-xl font-black text-white">Student Profile</h2>
+            <p class="text-red-400 text-sm font-semibold" id="mode-indicator">VIEW MODE</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a href="academy_login.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Dashboard</a>
+          <a href="students.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Students</a>
+          <a href="attendance.html" class="nav-link px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20">Attendance</a>
+          <button onclick="toggleEditMode()" id="edit-toggle" class="btn-edit-toggle bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg transition-all">EDIT PROFILE</button>
+          <button onclick="logout()" class="btn-logout bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg">LOGOUT</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="p-6 md:p-8 max-w-4xl mx-auto">
+      
+      <!-- STUDENT HEADER -->
+      <div class="bg-gradient-to-r from-gray-900 to-black border-2 border-red-500 rounded-3xl p-8 mb-8 shadow-2xl">
+        <div class="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+          
+          <!-- STUDENT PHOTO -->
+          <div class="flex-shrink-0">
+            <div class="w-32 h-32 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center text-4xl font-black shadow-2xl border-4 border-white mx-auto lg:mx-0" id="student-photo">
+              RA
+            </div>
+            <input type="file" id="photo-upload" class="hidden" accept="image/*" onchange="previewPhoto(event)">
+            <button onclick="document.getElementById('photo-upload').click()" class="mt-4 w-full bg-red-500/50 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-semibold text-sm hidden" id="photo-edit-btn">CHANGE PHOTO</button>
+          </div>
+
+          <!-- STUDENT BASIC INFO -->
+          <div class="flex-1 text-center lg:text-left">
+            <h1 id="student-name" class="text-4xl lg:text-5xl font-black text-white mb-4">Rahul Sharma</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg mb-6" id="basic-info">
+              <div class="flex items-center bg-black/50 border border-red-500/50 rounded-xl p-4">
+                <span class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mr-4 text-xl font-bold">🎂</span>
+                <div>
+                  <p class="text-gray-400 text-sm uppercase tracking-wide">Age</p>
+                  <p id="student-age" class="font-black text-2xl text-white">14</p>
+                </div>
+              </div>
+              <div class="flex items-center bg-black/50 border border-red-500/50 rounded-xl p-4">
+                <span class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mr-4 text-xl font-bold">⚽</span>
+                <div>
+                  <p class="text-gray-400 text-sm uppercase tracking-wide">Sport</p>
+                  <p id="student-sport" class="font-black text-2xl text-red-400">Football</p>
+                </div>
+              </div>
+              <div class="flex items-center bg-black/50 border border-red-500/50 rounded-xl p-4">
+                <span class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mr-4 text-xl font-bold">📚</span>
+                <div>
+                  <p class="text-gray-400 text-sm uppercase tracking-wide">Batch</p>
+                  <p id="student-batch" class="font-black text-2xl text-white">Batch A</p>
+                </div>
+              </div>
+              <div class="flex items-center bg-black/50 border border-red-500/50 rounded-xl p-4">
+                <span class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mr-4 text-xl font-bold">📱</span>
+                <div>
+                  <p class="text-gray-400 text-sm uppercase tracking-wide">Contact</p>
+                  <p id="student-contact" class="font-black text-2xl text-white">9876543210</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="flex flex-col lg:flex-row bg-gray-900 border-2 border-red-500/50 rounded-2xl overflow-hidden shadow-xl mb-8">
+        <div class="flex lg:w-1/3">
+          <button class="tab-btn flex-1 py-4 px-6 font-black text-lg border-b-4 border-transparent hover:border-red-400 transition-all" onclick="showTab('stats')">STATS</button>
+          <button class="tab-btn flex-1 py-4 px-6 font-black text-lg border-b-4 border-transparent hover:border-red-400 transition-all" onclick="showTab('attendance')">ATTENDANCE</button>
+          <button class="tab-btn flex-1 py-4 px-6 font-black text-lg border-b-4 border-transparent hover:border-red-400 transition-all" onclick="showTab('performance')">PERFORMANCE</button>
+        </div>
+        <div class="flex-1 bg-black/30 p-6">
+          <div id="stats-tab" class="tab-content">
+            <h3 class="text-2xl font-black text-white mb-6">📊 Performance Stats</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="bg-black/50 border border-red-500/50 rounded-2xl p-6">
+                <p class="text-gray-400 text-sm uppercase tracking-wide mb-2">Matches Played</p>
+                <div class="text-4xl font-black text-white mb-2" id="matches-played">24</div>
+                <p class="text-green-400 font-semibold">Season 2025-26</p>
+              </div>
+              <div class="bg-black/50 border border-red-500/50 rounded-2xl p-6">
+                <p class="text-gray-400 text-sm uppercase tracking-wide mb-2">Win Rate</p>
+                <div class="text-4xl font-black text-red-400 mb-2" id="win-rate">78%</div>
+                <p class="text-green-400 font-semibold">15W / 19M</p>
+              </div>
+            </div>
+          </div>
+          <div id="attendance-tab" class="tab-content hidden">
+            <h3 class="text-2xl font-black text-white mb-6">📅 Attendance Record</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="bg-black/50 border border-red-500/50 rounded-2xl p-6 text-center">
+                <p class="text-gray-400 mb-4">This Month</p>
+                <div class="text-4xl font-black text-green-400 mb-2">22/25</div>
+                <p class="text-sm text-gray-400">88%</p>
+              </div>
+              <div class="bg-black/50 border border-red-500/50 rounded-2xl p-6">
+                <div class="space-y-2 mb-4">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Jan 28</span>
+                    <span class="text-green-400 font-semibold">✅</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Jan 29</span>
+                    <span class="text-red-400 font-semibold">❌</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="performance-tab" class="tab-content hidden">
+            <h3 class="text-2xl font-black text-white mb-6">🏆 Achievements</h3>
+            <div class="space-y-4">
+              <div class="bg-black/50 border border-red-500/50 rounded-2xl p-6 flex items-center">
+                <div class="w-16 h-16 bg-yellow-500 rounded-xl flex items-center justify-center mr-4 text-2xl font-bold">🥇</div>
+                <div>
+                  <p class="font-black text-xl text-white mb-1">1st Place</p>
+                  <p class="text-gray-400">District Football Championship 2025</p>
+                </div>
+              </div>
+              <div class="bg-black/50 border border-red-500/50 rounded-2xl p-6 flex items-center">
+                <div class="w-16 h-16 bg-orange-500 rounded-xl flex items-center justify-center mr-4 text-2xl font-bold">🥈</div>
+                <div>
+                  <p class="font-black text-xl text-white mb-1">2nd Place</p>
+                  <p class="text-gray-400">State U-15 Tournament</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <button onclick="saveProfile()" class="btn-save bg-green-500 hover:bg-green-600 text-white font-black px-12 py-4 rounded-2xl shadow-xl text-lg hidden" id="save-btn">💾 SAVE CHANGES</button>
+        <button onclick="resetProfile()" class="btn-reset bg-gray-600 hover:bg-gray-700 text-white font-bold px-12 py-4 rounded-2xl shadow-lg text-lg hidden" id="reset-btn">↻ RESET</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let editMode = false;
+    let currentStudent = null;
+
+    // AUTH + STUDENT LOAD
+    window.onload = function() {
+      const role = localStorage.getItem('role');
+      if (role !== 'academy') {
+        alert('❌ Manager access only!');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Load student data from localStorage or default
+      const editing = localStorage.getItem('editingStudent');
+      const viewing = localStorage.getItem('viewingStudent');
+      currentStudent = editing || viewing || 'Rahul Sharma';
+      
+      loadStudentData(currentStudent);
+      
+      setTimeout(() => {
+        document.getElementById('auth-check').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('hidden');
+      }, 1200);
+    };
+
+    function loadStudentData(studentName) {
+      // Demo data - replace with real data fetch
+      const students = {
+        'Rahul Sharma': { name: 'Rahul Sharma', age: '14', sport: 'Football', batch: 'Batch A', contact: '9876543210', matches: '24', winrate: '78%' },
+        'Priya Patel': { name: 'Priya Patel', age: '13', sport: 'Cricket', batch: 'Batch B', contact: '9845654321', matches: '18', winrate: '65%' },
+        'Amit Kumar': { name: 'Amit Kumar', age: '15', sport: 'Tennis', batch: 'Batch C', contact: '9812345678', matches: '32', winrate: '82%' }
+      };
+      
+      const data = students[studentName] || students['Rahul Sharma'];
+      document.getElementById('student-name').textContent = data.name;
+      document.getElementById('student-age').textContent = data.age;
+      document.getElementById('student-sport').textContent = data.sport;
+      document.getElementById('student-batch').textContent = data.batch;
+      document.getElementById('student-contact').textContent = data.contact;
+      document.getElementById('matches-played').textContent = data.matches;
+      document.getElementById('win-rate').textContent = data.winrate;
+      document.getElementById('page-title').textContent = `${data.name} Profile`;
+      
+      // Update photo initials
+      const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase();
+      document.getElementById('student-photo').textContent = initials;
+    }
+
+    function toggleEditMode() {
+      editMode = !editMode;
+      const editElements = document.querySelectorAll('.edit-mode');
+      const viewElements = document.querySelectorAll('.view-mode');
+      
+      if (editMode) {
+        editElements.forEach(el => el.classList.remove('hidden'));
+        viewElements.forEach(el => el.classList.add('hidden'));
+        document.getElementById('mode-indicator').textContent = 'EDIT MODE';
+        document.getElementById('edit-toggle').textContent = 'VIEW MODE';
+        document.getElementById('edit-toggle').className = 'btn-edit-toggle bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg transition-all';
+        document.getElementById('save-btn').classList.remove('hidden');
+        document.getElementById('reset-btn').classList.remove('hidden');
+      } else {
+        editElements.forEach(el => el.classList.add('hidden'));
+        viewElements.forEach(el => el.classList.remove('hidden'));
+        document.getElementById('mode-indicator').textContent = 'VIEW MODE';
+        document.getElementById('edit-toggle').textContent = 'EDIT PROFILE';
+        document.getElementById('edit-toggle').className = 'btn-edit-toggle bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg transition-all';
+        document.getElementById('save-btn').classList.add('hidden');
+        document.getElementById('reset-btn').classList.add('hidden');
+      }
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('border-red-500', 'bg-red-500/20'));
+      document.getElementById(tabId + '-tab').classList.remove('hidden');
+      event.target.classList.add('border-red-500', 'bg-red-500/20');
+    }
+
+    function previewPhoto(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('student-photo').style.backgroundImage = `url(${e.target.result})`;
+          document.getElementById('student-photo').style.backgroundSize = 'cover';
+          document.getElementById('student-photo').textContent = '';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveProfile() {
+      alert('✅ Profile saved successfully!');
+      toggleEditMode(); // Exit edit mode
+    }
+
+    function resetProfile() {
+      loadStudentData(currentStudent);
+      alert('↻ Profile reset to original data');
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  </script>
+
+</body>
+</html>

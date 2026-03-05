@@ -1,0 +1,233 @@
+/* ==========================
+   RENDER TABLE
+========================== */
+function renderFees() {
+    const tbody = document.getElementById("fees-tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    displayData.forEach(item => {
+        const row = document.createElement("tr");
+
+        const dueDateFormatted = item.dueDate
+            ? item.dueDate.split('T')[0]
+            : "";
+
+        const paidDateFormatted = item.paidDate
+            ? item.paidDate.split('T')[0]
+            : "-";
+
+        row.innerHTML = `
+<td class="px-6 py-4 text-white font-semibold">
+${item.studentName || ""}
+</td>
+
+<td class="px-6 py-4 text-gray-300">
+${item.sport || ""}
+</td>
+
+<td class="px-6 py-4">
+₹ <input type="number"
+value="${item.amount || 0}"
+class="bg-black border-b border-gray-700 w-24 text-white"
+onchange="updateLocal('${item.studentId}','amount',this.value)">
+</td>
+
+<td class="px-6 py-4">
+<select
+onchange="updateLocal('${item.studentId}','status',this.value)"
+class="bg-black border text-white p-1">
+<option value="Pending" ${item.status==="Pending"?"selected":""}>Pending</option>
+<option value="Paid" ${item.status==="Paid"?"selected":""}>Paid</option>
+<option value="Overdue" ${item.status==="Overdue"?"selected":""}>Overdue</option>
+</select>
+</td>
+
+<td class="px-6 py-4">
+<input type="date"
+value="${dueDateFormatted}"
+onchange="updateLocal('${item.studentId}','dueDate',this.value)"
+class="bg-black border text-white p-1">
+</td>
+
+<td class="px-6 py-4 text-gray-300">
+${paidDateFormatted}
+</td>
+`;
+
+        tbody.appendChild(row);
+    });
+}
+
+/* ==========================
+   EXPORT FEES
+========================== */
+function exportFees() {
+    let csv = "Student,Sport,Amount,Status,Due Date,Paid Date\n";
+
+    filteredData.forEach(item => {
+        csv += `${item.studentName},${item.sport},${item.amount},${item.status},${item.dueDate},${item.paidDate}\n`;
+    });
+
+    downloadCSV(csv, "fees-report.csv");
+}
+
+/* ==========================
+   LOGOUT
+========================== */
+function logout() {
+    window.location.href = "academy_login.html";
+}
+
+/* ==========================
+   APPLY MONTHLY FEE (FIXED)
+========================== */
+function applyMonthlyFee() {
+
+    const input = document.getElementById("monthly-fee-input");
+    if (!input) return;
+
+    const amount = Number(input.value);
+    if (!amount) return alert("Enter valid amount");
+
+    filteredData.forEach(f => {
+        f.amount = amount;
+    });
+
+    displayData = [...filteredData];
+    renderFees();
+    updateDashboardStats();
+}
+
+/* ==========================
+   MONTHLY REPORT
+========================== */
+window.generateReport = function () {
+
+    const month = document.getElementById("monthSelect")?.value;
+    const year = document.getElementById("yearSelect")?.value;
+
+    let reportHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Monthly Report</title>
+<style>
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid black; padding: 8px; text-align: center; }
+th { background: #f3f3f3; }
+</style>
+</head>
+<body>
+<h2>Monthly Report - ${month}/${year}</h2>
+<table>
+<tr>
+<th>Student</th>
+<th>Status</th>
+<th>Amount</th>
+</tr>
+`;
+
+    filteredData.forEach(item => {
+        reportHTML += `
+<tr>
+<td>${item.studentName || ""}</td>
+<td>${item.status || ""}</td>
+<td>₹${item.amount || 0}</td>
+</tr>
+`;
+    });
+
+    reportHTML += `
+</table>
+</body>
+</html>
+`;
+
+    const newWindow = window.open("", "_blank");
+
+    if (newWindow) {
+        newWindow.document.open();
+        newWindow.document.write(reportHTML);
+        newWindow.document.close();
+    }
+};
+
+/* ==========================
+   LAST DAY OF MONTH
+========================== */
+function getLastDay(month, year) {
+    return new Date(year, month, 0)
+        .toISOString()
+        .split('T')[0];
+}
+
+/* ==========================
+   UPDATE LOCAL STATE
+========================== */
+window.updateLocal = function(studentId, field, value) {
+
+    const record = filteredData.find(f => f.studentId === studentId);
+    if (!record) return;
+
+    record[field] = field === "amount" ? Number(value) : value;
+
+    if (field === "status") {
+        record.paidDate =
+            value === "Paid"
+                ? new Date().toISOString().split('T')[0]
+                : "";
+    }
+
+    displayData = [...filteredData];
+    renderFees();
+    updateDashboardStats();
+};
+/* ==========================
+   DASHBOARD STATS
+========================== */
+function updateDashboardStats() {
+
+    let collected = 0;
+    let pending = 0;
+    let overdue = 0;
+
+    filteredData.forEach(f => {
+        if (f.status === "Paid")
+            collected += Number(f.amount);
+
+        if (f.status === "Pending")
+            pending += Number(f.amount);
+
+        if (f.status === "Overdue")
+            overdue++;
+    });
+
+    const cards = document.querySelectorAll(".stat-card");
+
+    if (cards.length >= 3) {
+        cards[0].querySelector(".text-4xl").innerText = `₹${collected}`;
+        cards[1].querySelector(".text-4xl").innerText = `₹${pending}`;
+        cards[2].querySelector(".text-4xl").innerText = overdue;
+    }
+}
+/* ==========================
+   CSV DOWNLOAD
+========================== */
+function downloadCSV(csv, filename) {
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+}
