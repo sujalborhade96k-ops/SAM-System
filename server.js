@@ -1655,7 +1655,7 @@ if (req.method === "GET" && req.url.startsWith("/api/attendance/monthly")) {
 
 });
 
-server.listen(5000, () => {
-  console.log("🚀 SAM SYSTEM Backend LIVE");
-  console.log("🌐 Server running at: http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 SAMS Backend LIVE on 0.0.0.0:${PORT}`);
 });
